@@ -1,0 +1,68 @@
+@use 'styles/mixins' as *;
+
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-5);
+}
+
+.head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    margin-bottom: var(--s-2);
+}
+
+.stats {
+    @include card;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s-5);
+    padding: var(--s-5);
+    background: var(--surface-sub);
+    border: none;
+
+    @include mobile {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+}
+
+.card {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+    padding: var(--s-5);
+}
+
+.bars {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+}
+
+.barRow {
+    @include row;
+    gap: var(--s-4);
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+}
+
+.tableRow {
+    @include row;
+    gap: var(--s-3);
+}
+
+.rowEnd {
+    margin-left: auto;
+}

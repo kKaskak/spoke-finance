@@ -1,0 +1,240 @@
+@use 'styles/mixins' as *;
+
+.trigger {
+    @include row;
+    @include clickable;
+    @include focus-ring;
+    gap: var(--s-2);
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    border: 1px solid transparent;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+
+    svg {
+        color: var(--red);
+    }
+
+    &:hover {
+        background: var(--surface-hover);
+    }
+}
+
+.triggerText {
+    @include mobile {
+        display: none;
+    }
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--s-4);
+    background: rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(4px);
+    animation: fade 0.2s ease;
+}
+
+.panel {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    @include card;
+    box-shadow: var(--shadow-lg);
+    padding: var(--s-6) var(--s-5) var(--s-5);
+    text-align: center;
+    animation: rise 0.3s var(--ease);
+}
+
+.close {
+    @include clickable;
+    position: absolute;
+    top: var(--s-4);
+    right: var(--s-4);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--surface-sub);
+    color: var(--text-secondary);
+    font-size: 12px;
+    &:hover {
+        background: var(--surface-hover);
+    }
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: var(--s-4);
+    border-radius: 50%;
+    background: rgba(229, 52, 42, 0.1);
+    color: var(--red);
+
+    svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+.title {
+    font-size: 21px;
+    margin-bottom: var(--s-2);
+}
+
+.sub {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    max-width: 30ch;
+    margin: 0 auto var(--s-5);
+}
+
+.presets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-2);
+    margin-bottom: var(--s-3);
+}
+
+.chip {
+    @include clickable;
+    @include tnum;
+    padding: 9px 0;
+    border-radius: var(--r-sm);
+    background: var(--surface-sub);
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    &:hover {
+        color: var(--text);
+    }
+}
+
+.chipActive {
+    background: var(--surface);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.inputRow {
+    @include row;
+    gap: var(--s-2);
+    padding: var(--s-3) var(--s-4);
+    border-radius: var(--r-md);
+    background: var(--surface-sub);
+    margin-bottom: var(--s-3);
+}
+
+.input {
+    @include tnum;
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    &::placeholder {
+        color: var(--text-tertiary);
+    }
+}
+
+.unit {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+}
+
+.address {
+    @include row;
+    @include clickable;
+    gap: var(--s-3);
+    width: 100%;
+    padding: var(--s-3) var(--s-4);
+    border-radius: var(--r-md);
+    background: var(--surface-sub);
+    border: none;
+    margin-bottom: var(--s-4);
+    font-family: var(--mono);
+    &:hover {
+        background: var(--surface-hover);
+    }
+}
+
+.addressLabel {
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+.addressValue {
+    font-size: 13px;
+    color: var(--text);
+}
+
+.copy {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+}
+
+.error {
+    padding: var(--s-3) var(--s-4);
+    margin-bottom: var(--s-4);
+    border-radius: var(--r-sm);
+    background: rgba(229, 52, 42, 0.08);
+    color: var(--red);
+    font-size: 13px;
+}
+
+.success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-3);
+
+    h2 {
+        font-size: 21px;
+    }
+    p {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+}
+
+.txlink {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: var(--s-3);
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+@keyframes fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+}

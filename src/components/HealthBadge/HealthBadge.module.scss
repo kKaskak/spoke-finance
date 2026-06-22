@@ -1,0 +1,38 @@
+@use 'styles/mixins' as *;
+
+.badge {
+    @include row;
+    @include tnum;
+    gap: var(--s-2);
+    font-weight: 600;
+}
+
+.sm {
+    font-size: 14px;
+}
+.lg {
+    font-size: 22px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.arrow {
+    color: var(--text-faint);
+    font-weight: 400;
+}
+
+.good {
+    color: var(--good);
+}
+.warn {
+    color: var(--warn);
+}
+.bad {
+    color: var(--bad);
+}

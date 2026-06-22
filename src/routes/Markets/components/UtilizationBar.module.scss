@@ -1,0 +1,43 @@
+@use 'styles/mixins' as *;
+
+.wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-width: 96px;
+}
+
+.track {
+    flex: 1;
+    height: 5px;
+    border-radius: var(--r-pill);
+    background: var(--border);
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    border-radius: var(--r-pill);
+    transition: width 0.5s var(--ease), background 0.3s var(--ease);
+}
+
+.good {
+    background: var(--good);
+}
+
+.warn {
+    background: var(--warn);
+}
+
+.bad {
+    background: var(--bad);
+}
+
+.label {
+    @include tnum;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-width: 44px;
+    text-align: right;
+}

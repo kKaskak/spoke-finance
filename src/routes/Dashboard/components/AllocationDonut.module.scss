@@ -1,0 +1,91 @@
+@use 'styles/mixins' as *;
+
+.wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-5);
+}
+
+.chart {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.total {
+    @include tnum;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+}
+
+.totalLabel {
+    margin-top: var(--s-1);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: -0.01em;
+}
+
+.legend {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    flex: 1;
+    min-width: 0;
+}
+
+.row {
+    @include row;
+    gap: var(--s-3);
+}
+
+.swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.sym {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.usd {
+    @include tnum;
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.pct {
+    @include tnum;
+    width: 52px;
+    text-align: right;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.empty {
+    padding: var(--s-5) 0;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 14px;
+}

@@ -1,0 +1,99 @@
+@use 'styles/mixins' as *;
+
+.btn {
+    @include row;
+    @include clickable;
+    @include focus-ring;
+    position: relative;
+    justify-content: center;
+    gap: var(--s-2);
+    border: 1px solid transparent;
+    border-radius: var(--r-pill);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+
+    &:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+.sm {
+    height: 32px;
+    padding: 0 14px;
+    font-size: 13px;
+}
+.md {
+    height: 40px;
+    padding: 0 20px;
+    font-size: 15px;
+}
+.lg {
+    height: 50px;
+    padding: 0 28px;
+    font-size: 17px;
+}
+.block {
+    width: 100%;
+}
+
+.primary,
+.supply {
+    background: var(--accent);
+    color: #fff;
+    &:hover:not(:disabled) {
+        background: var(--accent-hover);
+    }
+}
+
+.secondary,
+.glass,
+.borrow {
+    background: var(--surface-sub);
+    color: var(--text);
+    &:hover:not(:disabled) {
+        background: var(--surface-hover);
+    }
+}
+
+.ghost {
+    background: transparent;
+    color: var(--accent);
+    &:hover:not(:disabled) {
+        background: rgba(0, 0, 0, 0.04);
+    }
+}
+
+.danger {
+    background: rgba(229, 52, 42, 0.1);
+    color: var(--red);
+    &:hover:not(:disabled) {
+        background: rgba(229, 52, 42, 0.16);
+    }
+}
+
+.hidden {
+    opacity: 0;
+}
+
+.spinner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    opacity: 0.7;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

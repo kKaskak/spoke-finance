@@ -1,0 +1,40 @@
+@mixin card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+@mixin row {
+    display: flex;
+    align-items: center;
+}
+
+@mixin between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@mixin focus-ring {
+    outline: none;
+    &:focus-visible {
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25);
+    }
+}
+
+@mixin tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+}
+
+@mixin clickable {
+    cursor: pointer;
+    transition: background 0.25s var(--ease), border-color 0.25s var(--ease), color 0.2s var(--ease),
+        opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+@mixin mobile {
+    @media (max-width: 760px) {
+        @content;
+    }
+}

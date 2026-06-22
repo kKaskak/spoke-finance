@@ -1,0 +1,81 @@
+@use 'styles/mixins' as *;
+
+.viewport {
+    position: fixed;
+    top: calc(var(--nav-h) + var(--s-3));
+    right: var(--s-5);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    pointer-events: none;
+
+    @include mobile {
+        right: var(--s-4);
+        left: var(--s-4);
+    }
+}
+
+.toast {
+    @include row;
+    gap: var(--s-3);
+    width: 340px;
+    max-width: 100%;
+    padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lg);
+    pointer-events: auto;
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.success {
+    background: var(--green);
+}
+.error {
+    background: var(--red);
+}
+.info {
+    background: var(--accent);
+    font-style: italic;
+}
+
+.message {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+}
+
+.close {
+    @include clickable;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    border-radius: 50%;
+    &:hover {
+        background: var(--surface-sub);
+        color: var(--text);
+    }
+}

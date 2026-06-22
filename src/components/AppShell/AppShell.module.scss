@@ -1,0 +1,117 @@
+@use 'styles/mixins' as *;
+
+.shell {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.nav {
+    flex-shrink: 0;
+    z-index: 50;
+    height: var(--nav-h);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border);
+}
+
+.inner {
+    @include between;
+    max-width: var(--maxw);
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 var(--s-5);
+    gap: var(--s-4);
+}
+
+.brand {
+    @include row;
+    gap: var(--s-2);
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.brandDim {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+.mark {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    background: var(--accent);
+    margin-right: 2px;
+}
+
+.tabs {
+    @include row;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+
+    @include mobile {
+        display: none;
+    }
+}
+
+.tab {
+    position: relative;
+    padding: 6px 16px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.2s var(--ease);
+
+    &:hover {
+        color: var(--text);
+    }
+}
+
+.tabBg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--surface);
+    border-radius: var(--r-pill);
+    box-shadow: var(--shadow-sm);
+}
+
+.tabLabel {
+    position: relative;
+    z-index: 1;
+}
+
+.tabLabelActive {
+    color: var(--text);
+}
+
+.right {
+    @include row;
+    gap: var(--s-3);
+}
+
+.main {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+}
+
+.content {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5) var(--s-9);
+
+    @include mobile {
+        padding: var(--s-6) var(--s-4) var(--s-8);
+    }
+}

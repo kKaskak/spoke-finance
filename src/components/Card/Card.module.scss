@@ -1,0 +1,22 @@
+@use 'styles/mixins' as *;
+
+.card {
+    @include card;
+    overflow: hidden;
+}
+
+.head {
+    @include between;
+    padding: var(--s-5) var(--s-5) 0;
+}
+
+.title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: -0.01em;
+}
+
+.body {
+    padding: var(--s-5);
+}

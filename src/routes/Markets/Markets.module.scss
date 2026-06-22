@@ -1,0 +1,122 @@
+@use 'styles/mixins' as *;
+
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-7);
+}
+
+.head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+
+    @include mobile {
+        font-size: 36px;
+    }
+}
+
+.subtitle {
+    font-size: 19px;
+    color: var(--text-secondary);
+    max-width: 56ch;
+    letter-spacing: -0.01em;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s-6);
+    padding: var(--s-6);
+    background: var(--surface-sub);
+    border-radius: var(--r-xl);
+
+    @include mobile {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--s-5) var(--s-4);
+        padding: var(--s-5);
+    }
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+}
+
+.sectionTitle {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    padding-left: var(--s-1);
+}
+
+.table {
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: grid;
+    grid-template-columns: var(--cols);
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-4) var(--s-5);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--text-tertiary);
+
+    @include mobile {
+        display: none;
+    }
+}
+
+.headEnd {
+    text-align: right;
+}
+
+.center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-4);
+    min-height: 50vh;
+    color: var(--text-secondary);
+}
+
+.spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.loadingText {
+    font-size: 15px;
+    color: var(--text-tertiary);
+}
+
+.error {
+    font-size: 15px;
+    color: var(--bad);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

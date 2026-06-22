@@ -1,0 +1,107 @@
+@use 'styles/mixins' as *;
+
+.wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+}
+
+.legend {
+    @include row;
+    gap: var(--s-4);
+    justify-content: flex-end;
+}
+
+.legendItem {
+    @include row;
+    gap: var(--s-2);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.swatchSupplied {
+    background: rgba(0, 113, 227, 0.22);
+}
+
+.swatchBorrowed {
+    background: var(--accent);
+}
+
+.rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 110px 1fr 92px;
+    align-items: center;
+    gap: var(--s-4);
+
+    @include mobile {
+        grid-template-columns: 86px 1fr 72px;
+        gap: var(--s-3);
+    }
+}
+
+.label {
+    @include row;
+    gap: var(--s-2);
+    min-width: 0;
+}
+
+.sym {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track {
+    height: 14px;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    border-radius: var(--r-pill);
+    background: rgba(0, 113, 227, 0.22);
+    min-width: 14px;
+}
+
+.borrowed {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    border-radius: var(--r-pill) 0 0 var(--r-pill);
+}
+
+.meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+}
+
+.value {
+    @include tnum;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.util {
+    @include tnum;
+    font-size: 11px;
+    color: var(--text-tertiary);
+}

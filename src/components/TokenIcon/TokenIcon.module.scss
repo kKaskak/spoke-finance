@@ -1,0 +1,20 @@
+.icon {
+    border-radius: 50%;
+    background: var(--surface-sub);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--surface-sub);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}

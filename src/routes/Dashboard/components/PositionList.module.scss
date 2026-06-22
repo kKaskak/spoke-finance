@@ -1,0 +1,125 @@
+@use 'styles/mixins' as *;
+
+.row {
+    @include row;
+    gap: var(--s-4);
+    padding: var(--s-4) 0;
+    border-bottom: 1px solid var(--border);
+
+    &:first-child {
+        padding-top: var(--s-1);
+    }
+
+    &:last-child {
+        border-bottom: none;
+        padding-bottom: var(--s-1);
+    }
+
+    @include mobile {
+        flex-wrap: wrap;
+    }
+}
+
+.asset {
+    @include row;
+    gap: var(--s-3);
+    min-width: 150px;
+}
+
+.sym {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.amount {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.amountMain {
+    @include tnum;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.amountSub {
+    @include tnum;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.apr {
+    @include tnum;
+    margin-left: auto;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.aprSupply {
+    color: var(--good);
+}
+
+.aprBorrow {
+    color: var(--text);
+}
+
+.collateral {
+    @include row;
+    gap: var(--s-2);
+    width: 72px;
+
+    @include mobile {
+        width: auto;
+    }
+}
+
+.collateralLabel {
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+.actions {
+    @include row;
+    gap: var(--s-2);
+}
+
+.switch {
+    @include clickable;
+    position: relative;
+    width: 40px;
+    height: 24px;
+    border-radius: var(--r-pill);
+    background: var(--border-strong);
+    border: none;
+    flex-shrink: 0;
+    transition: background 0.25s var(--ease);
+
+    &:disabled {
+        opacity: 0.55;
+        cursor: progress;
+    }
+}
+
+.switchOn {
+    background: var(--good);
+}
+
+.knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+.err {
+    width: 100%;
+    font-size: 13px;
+    color: var(--bad);
+}

@@ -1,0 +1,74 @@
+@use 'styles/mixins' as *;
+
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-6);
+}
+
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-7) 0 var(--s-4);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-3);
+
+    @include mobile {
+        grid-template-columns: 1fr;
+    }
+}
+
+.card {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    padding: var(--s-5);
+}
+
+.charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--s-5);
+
+    @include mobile {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chartCard {
+    @include card;
+    padding: var(--s-5);
+    min-height: 240px;
+}
+
+.chartBody {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+}
+
+.listCard {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+    padding: var(--s-5);
+}
+
+.listRow {
+    @include row;
+    gap: var(--s-3);
+    padding-top: var(--s-2);
+}
+
+.rowEnd {
+    margin-left: auto;
+}
