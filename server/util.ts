@@ -11,13 +11,13 @@ const isTransient = (e: unknown): boolean => {
     return TRANSIENT.test(`${err?.code ?? ''} ${String(err?.message ?? e)}`);
 };
 
-export const withRetry = async <T>(fn: () => Promise<T>, tries = 7): Promise<T> => {
+export const withRetry = async <T>(fn: () => Promise<T>, tries = 3): Promise<T> => {
     for (let i = 0; ; i++) {
         try {
             return await fn();
         } catch (e) {
             if (i >= tries - 1 || !isTransient(e)) throw e;
-            await sleep(200 * 2 ** i);
+            await sleep(150 * 2 ** i);
         }
     }
 };
