@@ -63,6 +63,27 @@
     color: var(--text);
 }
 
+.icons {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+
+    > *:last-child {
+        position: absolute;
+        right: -8px;
+        bottom: -4px;
+        border: 2px solid var(--surface);
+        border-radius: 50%;
+    }
+}
+
+.pairSep {
+    margin-left: var(--s-1);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
 .price {
     @include tnum;
     font-size: 12px;

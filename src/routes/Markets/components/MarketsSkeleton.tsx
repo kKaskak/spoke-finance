@@ -3,10 +3,6 @@ import styles from './MarketsSkeleton.module.scss';
 
 export const MarketsSkeleton = () => (
     <div className={styles.page}>
-        <div className={styles.head}>
-            <Skeleton width={180} height={42} radius={12} />
-            <Skeleton width={300} height={18} radius={6} />
-        </div>
         <div className={styles.stats}>
             {[0, 1, 2, 3].map((i) => (
                 <div className={styles.stat} key={i}>

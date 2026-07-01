@@ -1,14 +1,18 @@
-import { useCallback, useMemo } from 'react';
+import { motion } from 'motion/react';
+import { useCallback, useMemo, useState } from 'react';
 import { Card } from '@/components/Card/Card';
 import { StatTile } from '@/components/StatTile/StatTile';
 import { useApp } from '@/lib/app';
 import { fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
+import { PLATFORM_LABEL, type PlatformKey } from '@/lib/platform';
 import { useWallet } from '@/lib/wallet';
-import type { ActionKind, ReserveWithUser } from '@shared/types';
-import { MarketRow } from './components/MarketRow';
+import type { ActionKind } from '@shared/types';
+import { AaveV3Markets } from './components/AaveV3Markets';
+import { MarketTable } from './components/MarketTable';
 import { MarketsBarChart } from './components/MarketsBarChart';
 import { MarketsSkeleton } from './components/MarketsSkeleton';
+import { PairMarkets } from './components/PairMarkets';
 import styles from './Markets.module.scss';
 
 const COLLATERAL_COLS = '1.4fr 0.8fr 1.1fr 1fr 1fr 1.4fr';
@@ -29,31 +33,51 @@ const borrowHeaders = (connected: boolean): string[] =>
         ? ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available', 'Your debt', '']
         : ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available', ''];
 
-type TableProps = {
-    headers: string[];
-    cols: string;
-    reserves: ReserveWithUser[];
-    variant: 'collateral' | 'borrow';
-    connected: boolean;
-    onAct: (id: number, kind: ActionKind) => void;
-};
-
-const MarketTable = ({ headers, cols, reserves, variant, connected, onAct }: TableProps) => (
-    <div className={styles.table} style={{ ['--cols' as string]: cols }}>
-        <div className={styles.header} style={{ ['--cols' as string]: cols }}>
-            {headers.map((h, i) => (
-                <span key={h || `spacer-${i}`} className={i === 0 ? undefined : styles.headEnd}>
-                    {h}
-                </span>
-            ))}
-        </div>
-        {reserves.map((r) => (
-            <MarketRow key={r.id} reserve={r} variant={variant} connected={connected} onAct={onAct} />
-        ))}
-    </div>
-);
+const TABS: PlatformKey[] = ['aave-v4', 'aave-v3', 'morpho', 'fluid'];
 
 export const Markets = () => {
+    const { otherPlatforms } = useApp();
+    const [tab, setTab] = useState<PlatformKey>('aave-v4');
+
+    return (
+        <div className={styles.page}>
+            <Reveal>
+                <header className={styles.head}>
+                    <h1 className={styles.title}>Markets</h1>
+                    <p className={styles.subtitle}>
+                        Supply collateral and borrow across Aave v4, Aave v3, Morpho and Fluid.
+                    </p>
+                </header>
+            </Reveal>
+
+            <Reveal delay={0.04}>
+                <div className={styles.tabs}>
+                    {TABS.map((t) => (
+                        <button key={t} type="button" className={styles.tab} onClick={() => setTab(t)}>
+                            {tab === t && (
+                                <motion.span
+                                    layoutId="marketsTab"
+                                    className={styles.tabBg}
+                                    transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+                                />
+                            )}
+                            <span className={[styles.tabLabel, tab === t ? styles.tabLabelActive : ''].join(' ')}>
+                                {PLATFORM_LABEL[t]}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </Reveal>
+
+            {tab === 'aave-v4' && <AaveV4Markets />}
+            {tab === 'aave-v3' && <AaveV3Markets reserves={otherPlatforms.aaveV3Reserves} loading={otherPlatforms.loading} />}
+            {tab === 'morpho' && <PairMarkets markets={otherPlatforms.morpho.markets} loading={otherPlatforms.loading} />}
+            {tab === 'fluid' && <PairMarkets markets={otherPlatforms.fluid.markets} loading={otherPlatforms.loading} />}
+        </div>
+    );
+};
+
+const AaveV4Markets = () => {
     const { portfolio, openAction } = useApp();
     const { connect } = useWallet();
     const { reserves, connected, loading, error } = portfolio;
@@ -90,16 +114,7 @@ export const Markets = () => {
     }
 
     return (
-        <div className={styles.page}>
-            <Reveal>
-                <header className={styles.head}>
-                    <h1 className={styles.title}>Markets</h1>
-                    <p className={styles.subtitle}>
-                        Supply bluechip collateral and borrow stablecoins across the Aave v4 protocol.
-                    </p>
-                </header>
-            </Reveal>
-
+        <>
             <Reveal delay={0.05}>
                 <div className={styles.stats}>
                     <StatTile label="Total market size" value={<AnimatedNumber value={stats.size} format={usdC} />} />
@@ -157,6 +172,6 @@ export const Markets = () => {
                     </section>
                 </Reveal>
             )}
-        </div>
+        </>
     );
 };

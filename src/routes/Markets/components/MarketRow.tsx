@@ -11,6 +11,7 @@ type Props = {
     variant: 'collateral' | 'borrow';
     connected: boolean;
     onAct: (id: number, kind: ActionKind) => void;
+    actions?: boolean;
 };
 
 const statusTag = (r: ReserveWithUser): string | null => {
@@ -19,7 +20,7 @@ const statusTag = (r: ReserveWithUser): string | null => {
     return null;
 };
 
-export const MarketRow = ({ reserve, variant, connected, onAct }: Props) => {
+export const MarketRow = ({ reserve, variant, connected, onAct, actions = true }: Props) => {
     const disabled = reserve.paused || reserve.frozen;
     const tag = statusTag(reserve);
     const liquidity = Math.max(0, reserve.totalSuppliedUsd - reserve.totalDebtUsd);
@@ -63,16 +64,18 @@ export const MarketRow = ({ reserve, variant, connected, onAct }: Props) => {
                             </div>
                         </>
                     )}
-                    <div className={styles.actions}>
-                        <Button size="sm" variant="primary" disabled={disabled} onClick={onSupply}>
-                            Supply
-                        </Button>
-                        {reserve.supplied > 0 && (
-                            <Button size="sm" variant="secondary" disabled={disabled} onClick={onWithdraw}>
-                                Withdraw
+                    {actions && (
+                        <div className={styles.actions}>
+                            <Button size="sm" variant="primary" disabled={disabled} onClick={onSupply}>
+                                Supply
                             </Button>
-                        )}
-                    </div>
+                            {reserve.supplied > 0 && (
+                                <Button size="sm" variant="secondary" disabled={disabled} onClick={onWithdraw}>
+                                    Withdraw
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </>
             ) : (
                 <>
@@ -97,20 +100,22 @@ export const MarketRow = ({ reserve, variant, connected, onAct }: Props) => {
                             </span>
                         </div>
                     )}
-                    <div className={styles.actions}>
-                        <Button size="sm" variant="primary" disabled={disabled} onClick={onBorrow}>
-                            Borrow
-                        </Button>
-                        {reserve.debt > 0 ? (
-                            <Button size="sm" variant="secondary" disabled={disabled} onClick={onRepay}>
-                                Repay
+                    {actions && (
+                        <div className={styles.actions}>
+                            <Button size="sm" variant="primary" disabled={disabled} onClick={onBorrow}>
+                                Borrow
                             </Button>
-                        ) : (
-                            <Button size="sm" variant="secondary" disabled={disabled} onClick={onSupply}>
-                                Supply
-                            </Button>
-                        )}
-                    </div>
+                            {reserve.debt > 0 ? (
+                                <Button size="sm" variant="secondary" disabled={disabled} onClick={onRepay}>
+                                    Repay
+                                </Button>
+                            ) : (
+                                <Button size="sm" variant="secondary" disabled={disabled} onClick={onSupply}>
+                                    Supply
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </>
             )}
         </div>
