@@ -85,7 +85,7 @@ const AaveV4Markets = () => {
 
     const onAct = useCallback(
         (id: number, kind: ActionKind) => {
-            if (connected) openAction(id, kind);
+            if (connected) openAction('aave-v4', id, kind);
             else void connect();
         },
         [connected, openAction, connect]

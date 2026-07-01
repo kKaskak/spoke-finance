@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Card } from '@/components/Card/Card';
 import { StatTile } from '@/components/StatTile/StatTile';
 import { useApp } from '@/lib/app';
 import { fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
 import { isNoisyPool } from '@/lib/poolFilter';
-import type { ReserveWithUser } from '@shared/types';
+import { useWallet } from '@/lib/wallet';
+import type { ActionKind, ReserveWithUser } from '@shared/types';
 import { MarketTable } from './MarketTable';
 import { MarketsBarChart } from './MarketsBarChart';
 import { MarketsSkeleton } from './MarketsSkeleton';
@@ -14,22 +15,20 @@ import styles from '../Markets.module.scss';
 const usdC = (n: number) => fmtUsd(n, true);
 const countC = (n: number) => Math.round(n).toString();
 
-const COLLATERAL_COLS = '1.4fr 0.8fr 1.1fr 1fr 1fr';
-const COLLATERAL_COLS_GUEST = '1.6fr 1fr 1.3fr';
-const BORROW_COLS = '1.4fr 0.9fr 0.9fr 1.2fr 1.1fr 1fr';
-const BORROW_COLS_GUEST = '1.5fr 1fr 1fr 1.3fr 1.2fr';
+const COLLATERAL_COLS = '1.4fr 0.8fr 1.1fr 1fr 1fr 1.4fr';
+const COLLATERAL_COLS_GUEST = '1.6fr 1fr 1.3fr 1.6fr';
+const BORROW_COLS = '1.4fr 0.9fr 0.9fr 1.2fr 1.1fr 1fr 1.6fr';
+const BORROW_COLS_GUEST = '1.5fr 1fr 1fr 1.3fr 1.2fr 1.6fr';
 
 const collateralHeaders = (connected: boolean): string[] =>
     connected
-        ? ['Asset', 'Max LTV', 'Total supplied', 'Your wallet', 'Your supplied']
-        : ['Asset', 'Max LTV', 'Total supplied'];
+        ? ['Asset', 'Max LTV', 'Total supplied', 'Your wallet', 'Your supplied', '']
+        : ['Asset', 'Max LTV', 'Total supplied', ''];
 
 const borrowHeaders = (connected: boolean): string[] =>
     connected
-        ? ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available', 'Your debt']
-        : ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available'];
-
-const noop = () => {};
+        ? ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available', 'Your debt', '']
+        : ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available', ''];
 
 type Props = {
     reserves: ReserveWithUser[];
@@ -37,8 +36,17 @@ type Props = {
 };
 
 export const AaveV3Markets = ({ reserves, loading }: Props) => {
-    const { portfolio } = useApp();
+    const { portfolio, openAction } = useApp();
+    const { connect } = useWallet();
     const connected = portfolio.connected;
+
+    const onAct = useCallback(
+        (id: number, kind: ActionKind) => {
+            if (connected) openAction('aave-v3', id, kind);
+            else void connect();
+        },
+        [connected, openAction, connect]
+    );
 
     const [showAllBorrow, setShowAllBorrow] = useState(false);
 
@@ -92,8 +100,7 @@ export const AaveV3Markets = ({ reserves, loading }: Props) => {
                                 reserves={collateral}
                                 variant="collateral"
                                 connected={connected}
-                                onAct={noop}
-                                actions={false}
+                                onAct={onAct}
                             />
                         </Card>
                     </section>
@@ -121,8 +128,7 @@ export const AaveV3Markets = ({ reserves, loading }: Props) => {
                                     reserves={borrow}
                                     variant="borrow"
                                     connected={connected}
-                                    onAct={noop}
-                                    actions={false}
+                                    onAct={onAct}
                                 />
                             )}
                         </Card>
