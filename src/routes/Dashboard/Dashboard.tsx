@@ -45,6 +45,15 @@ const pairAvailableToBorrow = (positions: PairPosition[]): number =>
 const pairMarketFor = (position: PairPosition, markets: PairMarket[]): PairMarket | undefined =>
     markets.find((m) => m.id === position.marketId);
 
+const pooledNetInterest = (reserves: ReserveWithUser[]): number =>
+    reserves.reduce((s, r) => s + r.suppliedUsd * r.supplyApr - r.debtUsd * r.borrowApr, 0);
+
+const pairNetInterest = (positions: PairPosition[], markets: PairMarket[]): number =>
+    positions.reduce((s, p) => {
+        const m = pairMarketFor(p, markets);
+        return m ? s + p.suppliedUsd * m.supplyApr - p.debtUsd * m.borrowApr : s;
+    }, 0);
+
 export const Dashboard = () => {
     const { portfolio, otherPlatforms } = useApp();
     const { account, reserves, loading, error, connected } = portfolio;
@@ -157,8 +166,15 @@ export const Dashboard = () => {
     const totalCollateralUsd = platformRows.reduce((s, p) => s + p.collateralUsd, 0);
     const totalDebtUsd = platformRows.reduce((s, p) => s + p.debtUsd, 0);
     const totalNetWorthUsd = totalCollateralUsd - totalDebtUsd;
+    const totalAvailableBorrowsUsd = platformRows.reduce((s, p) => s + p.availableBorrowsUsd, 0);
     const platformHfs = platformRows.map((p) => p.healthFactor).filter((hf): hf is number => hf !== null);
     const overallHealthFactor = platformHfs.length > 0 ? Math.min(...platformHfs) : null;
+    const totalNetInterest =
+        pooledNetInterest(reserves) +
+        pooledNetInterest(aaveV3Reserves) +
+        pairNetInterest(morpho.positions, morpho.markets) +
+        pairNetInterest(fluid.positions, fluid.markets);
+    const overallNetApr = totalNetWorthUsd > 0 ? totalNetInterest / totalNetWorthUsd : 0;
 
     const market = useMemo(
         () => ({
@@ -233,8 +249,8 @@ export const Dashboard = () => {
 
     if (!account) return null;
 
-    const netAprAccent = account.netApr >= 0 ? 'supply' : 'borrow';
-    const netAprSign = account.netApr >= 0 ? '+' : '−';
+    const netAprAccent = overallNetApr >= 0 ? 'supply' : 'borrow';
+    const netAprSign = overallNetApr >= 0 ? '+' : '−';
 
     return (
         <div className={styles.page}>
@@ -254,9 +270,9 @@ export const Dashboard = () => {
                     <div className={styles.statCard}>
                         <StatTile
                             label="Net APR"
-                            value={`${netAprSign}${fmtPct(Math.abs(account.netApr))}`}
+                            value={`${netAprSign}${fmtPct(Math.abs(overallNetApr))}`}
                             accent={netAprAccent}
-                            sub="Aave v4"
+                            sub="All platforms"
                         />
                     </div>
                     <div className={styles.statCard}>
@@ -271,7 +287,7 @@ export const Dashboard = () => {
                         />
                     </div>
                     <div className={styles.statCard}>
-                        <StatTile label="Available to Borrow" value={fmtUsd(account.availableBorrowsUsd)} sub="Aave v4" />
+                        <StatTile label="Available to Borrow" value={fmtUsd(totalAvailableBorrowsUsd)} sub="All platforms" />
                     </div>
                 </div>
             </Reveal>
