@@ -256,15 +256,19 @@ const PooledDrawerInner = ({ platform, reserve, account, initialKind, onClose, o
                 ))}
             </div>
 
-            {showChart && (
-                <div className={styles.chart}>
-                    <div className={styles.chartHead}>
-                        <span>Health factor projection</span>
-                        <HealthBadge hf={account.healthFactor} projected={projection.healthFactor} />
-                    </div>
-                    <HfChart account={account} reserve={reserve} kind={kind} max={max} amount={amountNum} />
-                </div>
-            )}
+            <div className={styles.chart}>
+                {showChart ? (
+                    <>
+                        <div className={styles.chartHead}>
+                            <span>Health factor projection</span>
+                            <HealthBadge hf={account.healthFactor} projected={projection.healthFactor} />
+                        </div>
+                        <HfChart account={account} reserve={reserve} kind={kind} max={max} amount={amountNum} />
+                    </>
+                ) : (
+                    <div className={styles.chartPlaceholder}>No health factor impact for this action</div>
+                )}
+            </div>
 
             <div className={styles.summary}>
                 <Row label="Health factor" value={<HealthBadge hf={account.healthFactor} projected={amountNum > 0 ? projection.healthFactor : undefined} />} />

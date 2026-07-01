@@ -196,10 +196,22 @@
 }
 
 .chart {
+    height: 220px;
+    box-sizing: border-box;
     padding: var(--s-4);
     border-radius: var(--r-md);
     background: var(--surface-sub);
     margin-bottom: var(--s-5);
+}
+
+.chartPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
 }
 
 .chartHead {
