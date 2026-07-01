@@ -1,0 +1,4 @@
+name = "aave-v4-portal"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
