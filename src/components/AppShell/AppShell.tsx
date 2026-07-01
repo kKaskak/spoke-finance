@@ -17,8 +17,8 @@ export const AppShell = () => {
             <header className={styles.nav}>
                 <div className={styles.inner}>
                     <NavLink to="/" className={styles.brand}>
-                        <span className={styles.mark} />
-                        Aave <span className={styles.brandDim}>v4</span>
+                        <img src="/favicon.svg" alt="" className={styles.mark} />
+                        Spoke
                     </NavLink>
                     <nav className={styles.tabs}>
                         {tabs.map((t) => (

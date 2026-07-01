@@ -1,0 +1,17 @@
+{
+    "name": "Spoke",
+    "short_name": "Spoke",
+    "description": "Manage Aave v4 and track Aave v3, Morpho, and Fluid positions in one place.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0071e3",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}
