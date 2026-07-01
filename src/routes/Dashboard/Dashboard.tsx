@@ -197,14 +197,15 @@ export const Dashboard = () => {
         pairNetInterest(fluid.positions, fluid.markets);
     const overallNetApr = totalNetWorthUsd > 0 ? totalNetInterest / totalNetWorthUsd : 0;
 
-    const market = useMemo(
-        () => ({
-            size: reserves.reduce((s, r) => s + r.totalSuppliedUsd, 0),
-            borrowed: reserves.reduce((s, r) => s + r.totalDebtUsd, 0),
-            assets: reserves.length
-        }),
-        [reserves]
-    );
+    const market = useMemo(() => {
+        const pooled = [...reserves, ...aaveV3Reserves];
+        const pairs = [...morpho.markets, ...fluid.markets];
+        return {
+            size: pooled.reduce((s, r) => s + r.totalSuppliedUsd, 0) + pairs.reduce((s, m) => s + m.totalSuppliedUsd, 0),
+            borrowed: pooled.reduce((s, r) => s + r.totalDebtUsd, 0) + pairs.reduce((s, m) => s + m.totalDebtUsd, 0),
+            markets: pooled.length + pairs.length
+        };
+    }, [reserves, aaveV3Reserves, morpho.markets, fluid.markets]);
 
     if (loading && reserves.length === 0) {
         return <DashboardSkeleton />;
@@ -234,13 +235,13 @@ export const Dashboard = () => {
                 </Reveal>
                 <Reveal delay={0.18} className={styles.marketStrip}>
                     <div className={styles.marketStat}>
-                        <StatTile label="Total Market Size" value={fmtUsd(market.size, true)} />
+                        <StatTile label="Total Market Size" value={fmtUsd(market.size, true)} sub="All platforms" />
                     </div>
                     <div className={styles.marketStat}>
-                        <StatTile label="Total Borrowed" value={fmtUsd(market.borrowed, true)} />
+                        <StatTile label="Total Borrowed" value={fmtUsd(market.borrowed, true)} sub="All platforms" />
                     </div>
                     <div className={styles.marketStat}>
-                        <StatTile label="Assets" value={market.assets} />
+                        <StatTile label="Markets" value={market.markets} sub="All platforms" />
                     </div>
                 </Reveal>
             </div>
