@@ -5,7 +5,7 @@ Connect a wallet to manage your Aave v4 Bluechip Spoke position (`0x973a023A7742
 ## Stack
 
 - **Frontend**: React + Vite + TypeScript, SCSS modules, recharts, react-router, ethers v6.
-- **API**: Express — proxies on-chain reads (Alchemy RPC) so keys stay server-side and the heavy aggregation runs once.
+- **API**: Cloudflare Pages Functions in production (`functions/api/*`), mirrored by an Express server for local dev — proxies on-chain reads (Alchemy RPC) so keys stay server-side and the heavy aggregation runs once.
 - **Reads** go through the API; **writes** (supply/borrow/repay/withdraw/approve) are signed by the connected wallet.
 
 ## Setup
@@ -23,13 +23,18 @@ Open http://localhost:5173 and connect a wallet on Ethereum mainnet.
 - `pnpm dev` — run API + web together
 - `pnpm build` — typecheck + production build
 - `pnpm typecheck` — typecheck app and server
-- `pnpm test` — health-factor projection self-check
+- `pnpm lint` — eslint
+- `pnpm test` — projection + multicall self-checks
 
 ## How it works
 
-- `server/data.ts` reads the Spoke + Oracle + Hub per reserve and aggregates `GET /api/reserves` and `GET /api/position/:address`. Responses are concurrency-limited and cached, with retry on RPC rate limits.
+- `server/data.ts` reads the Spoke + Oracle + Hub per reserve and aggregates `GET /api/reserves` and `GET /api/position/:address`. Reads are batched through Multicall3 (`server/multicall.ts`), cached, and retried on RPC rate limits.
 - `src/lib/projection.ts` simulates an action client-side so the UI shows the resulting health factor before you sign (`HF = borrowPower / debt`).
 - `src/lib/contracts.ts` runs each action approval-aware: it checks the ERC-20 allowance to the Spoke and sends the `approve` tx automatically before `supply`/`repay`.
+
+## Deploy
+
+Publishing a GitHub release deploys to Cloudflare Pages ([spoke.finance](https://spoke.finance)) via `.github/workflows/deploy.yml`.
 
 ## Value scales (Aave v4 Spoke)
 
