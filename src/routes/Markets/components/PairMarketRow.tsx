@@ -23,10 +23,8 @@ export const PairMarketRow = ({ market, onAct }: Props) => {
                     <TokenIcon symbol={market.borrowSymbol} address={market.borrowAddress} size={18} />
                 </div>
                 <div className={styles.assetText}>
-                    <span className={styles.symbol}>
-                        {market.supplySymbol}
-                        <span className={styles.pairSep}>/ {market.borrowSymbol}</span>
-                    </span>
+                    <span className={styles.symbol}>{market.supplySymbol}</span>
+                    <span className={styles.pairSub}>/ {market.borrowSymbol}</span>
                 </div>
             </div>
             <div className={styles.cell} data-label="Max LTV">

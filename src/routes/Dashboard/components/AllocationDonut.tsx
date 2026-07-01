@@ -3,7 +3,7 @@ import { PlatformIcon } from '@/components/PlatformIcon/PlatformIcon';
 import { TokenIcon } from '@/components/TokenIcon/TokenIcon';
 import { CHART_COLORS, tooltipItemStyle, tooltipLabelStyle, tooltipStyle, tooltipWrapperStyle } from '@/lib/chart';
 import { fmtPct, fmtUsd } from '@/lib/format';
-import { PLATFORM_LABEL, type PlatformKey } from '@/lib/platform';
+import { PLATFORM_LABEL, PLATFORM_SHORT, type PlatformKey } from '@/lib/platform';
 import styles from './AllocationDonut.module.scss';
 
 export type Slice = {
@@ -74,9 +74,9 @@ export const AllocationDonut = ({ slices, emptyLabel }: Props) => {
                         <div className={styles.assetInfo}>
                             <span className={styles.sym}>{s.symbol}</span>
                             {s.platform && (
-                                <span className={styles.platformTag}>
+                                <span className={styles.platformTag} title={PLATFORM_LABEL[s.platform]}>
                                     <PlatformIcon platform={s.platform} size={14} />
-                                    {PLATFORM_LABEL[s.platform]}
+                                    {PLATFORM_SHORT[s.platform] || null}
                                 </span>
                             )}
                         </div>

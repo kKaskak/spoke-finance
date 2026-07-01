@@ -54,6 +54,27 @@ const pairNetInterest = (positions: PairPosition[], markets: PairMarket[]): numb
         return m ? s + p.suppliedUsd * m.supplyApr - p.debtUsd * m.borrowApr : s;
     }, 0);
 
+const pairAprEntries = (positions: PairPosition[], markets: PairMarket[]): { apr: number; usd: number }[] =>
+    positions
+        .filter((p) => p.debtUsd > 0)
+        .map((p) => {
+            const m = pairMarketFor(p, markets);
+            return m ? { apr: m.borrowApr, usd: p.debtUsd } : null;
+        })
+        .filter((e): e is { apr: number; usd: number } => e !== null);
+
+const debtWeightedMedianApr = (entries: { apr: number; usd: number }[]): number | null => {
+    if (entries.length === 0) return null;
+    const sorted = [...entries].sort((a, b) => a.apr - b.apr);
+    const half = sorted.reduce((s, e) => s + e.usd, 0) / 2;
+    let acc = 0;
+    for (const e of sorted) {
+        acc += e.usd;
+        if (acc >= half) return e.apr;
+    }
+    return sorted[sorted.length - 1].apr;
+};
+
 export const Dashboard = () => {
     const { portfolio, otherPlatforms } = useApp();
     const { account, reserves, loading, error, connected } = portfolio;
@@ -252,6 +273,24 @@ export const Dashboard = () => {
     const netAprAccent = overallNetApr >= 0 ? 'supply' : 'borrow';
     const netAprSign = overallNetApr >= 0 ? '+' : '−';
 
+    const borrowAprEntries = [
+        ...reserves.filter((r) => r.debtUsd > 0).map((r) => ({ apr: r.borrowApr, usd: r.debtUsd })),
+        ...aaveV3Reserves.filter((r) => r.debtUsd > 0).map((r) => ({ apr: r.borrowApr, usd: r.debtUsd })),
+        ...pairAprEntries(morpho.positions, morpho.markets),
+        ...pairAprEntries(fluid.positions, fluid.markets)
+    ];
+    const fallbackApr =
+        reserves.find((r) => r.symbol === 'GHO')?.borrowApr ??
+        reserves.find((r) => ['USDC', 'USDT', 'DAI'].includes(r.symbol))?.borrowApr ??
+        0.035;
+    const simBorrowApr = debtWeightedMedianApr(borrowAprEntries) ?? fallbackApr;
+    const cfWeighted =
+        account.avgCollateralFactor * account.collateralUsd +
+        (aaveV3Account ? aaveV3Account.avgCollateralFactor * aaveV3Account.collateralUsd : 0) +
+        morpho.positions.reduce((s, p) => s + p.suppliedUsd * p.maxLtv, 0) +
+        fluid.positions.reduce((s, p) => s + p.suppliedUsd * p.maxLtv, 0);
+    const simCollateralFactor = totalCollateralUsd > 0 ? cfWeighted / totalCollateralUsd : 0;
+
     return (
         <div className={styles.page}>
             <Reveal>
@@ -314,10 +353,15 @@ export const Dashboard = () => {
                 </Card>
             </Reveal>
 
-            {account.collateralUsd > 0 && (
+            {totalCollateralUsd > 0 && (
                 <Reveal delay={0.18}>
                     <Card title="Leverage simulator · loop vs hold">
-                        <LoopSimulator account={account} reserves={reserves} />
+                        <LoopSimulator
+                            netWorthUsd={totalNetWorthUsd}
+                            healthFactor={overallHealthFactor}
+                            collateralFactor={simCollateralFactor}
+                            borrowApr={simBorrowApr}
+                        />
                     </Card>
                 </Reveal>
             )}

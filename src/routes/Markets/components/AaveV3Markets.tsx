@@ -48,14 +48,19 @@ export const AaveV3Markets = ({ reserves, loading }: Props) => {
         [connected, openAction, connect]
     );
 
-    const [showAllBorrow, setShowAllBorrow] = useState(false);
+    const [showAll, setShowAll] = useState(false);
+    const onToggleShowAll = useCallback(() => setShowAll((v) => !v), []);
 
     const collateral = useMemo(() => reserves.filter((r) => r.canBeCollateral), [reserves]);
     const borrowAll = useMemo(() => reserves.filter((r) => r.borrowable), [reserves]);
-    const hiddenBorrowCount = useMemo(() => borrowAll.filter((r) => isNoisyPool(r.utilization)).length, [borrowAll]);
+    const hiddenCount = useMemo(() => reserves.filter((r) => isNoisyPool(r.utilization)).length, [reserves]);
+    const chartReserves = useMemo(
+        () => (showAll ? reserves : reserves.filter((r) => !isNoisyPool(r.utilization))),
+        [reserves, showAll]
+    );
     const borrow = useMemo(
-        () => (showAllBorrow ? borrowAll : borrowAll.filter((r) => !isNoisyPool(r.utilization))),
-        [borrowAll, showAllBorrow]
+        () => (showAll ? borrowAll : borrowAll.filter((r) => !isNoisyPool(r.utilization))),
+        [borrowAll, showAll]
     );
 
     const stats = useMemo(() => {
@@ -84,8 +89,17 @@ export const AaveV3Markets = ({ reserves, loading }: Props) => {
             </Reveal>
 
             <Reveal delay={0.1}>
-                <Card title="Markets by size">
-                    <MarketsBarChart reserves={reserves} />
+                <Card
+                    title="Markets by size"
+                    action={
+                        hiddenCount > 0 && (
+                            <button type="button" className={styles.toggleLink} onClick={onToggleShowAll}>
+                                {showAll ? 'Hide full & idle pools' : `Show ${hiddenCount} full & idle pool${hiddenCount === 1 ? '' : 's'}`}
+                            </button>
+                        )
+                    }
+                >
+                    <MarketsBarChart reserves={chartReserves} />
                 </Card>
             </Reveal>
 
@@ -112,11 +126,6 @@ export const AaveV3Markets = ({ reserves, loading }: Props) => {
                     <section className={styles.section}>
                         <div className={styles.sectionHead}>
                             <h2 className={styles.sectionTitle}>Borrow assets</h2>
-                            {hiddenBorrowCount > 0 && (
-                                <button type="button" className={styles.toggleLink} onClick={() => setShowAllBorrow((v) => !v)}>
-                                    {showAllBorrow ? 'Hide full & idle pools' : `Show ${hiddenBorrowCount} full & idle pool${hiddenBorrowCount === 1 ? '' : 's'}`}
-                                </button>
-                            )}
                         </div>
                         <Card pad={false}>
                             {borrow.length === 0 ? (

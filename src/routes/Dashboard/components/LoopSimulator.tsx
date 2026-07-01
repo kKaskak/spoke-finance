@@ -3,7 +3,6 @@ import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, Responsive
 import { AXIS_COLOR, GRID_COLOR, tooltipItemStyle, tooltipLabelStyle, tooltipStyle } from '@/lib/chart';
 import { fmtPct, fmtUsd } from '@/lib/format';
 import { holdNetWorth, loopModel, loopNetWorth } from '@/lib/projection';
-import type { AccountSummary, ReserveWithUser } from '@shared/types';
 import styles from './LoopSimulator.module.scss';
 
 const STEPS = 48;
@@ -11,27 +10,24 @@ const HOLD = '#1d1d1f';
 const LOOP = '#0071e3';
 
 type Props = {
-    account: AccountSummary;
-    reserves: ReserveWithUser[];
+    netWorthUsd: number;
+    healthFactor: number | null;
+    collateralFactor: number;
+    borrowApr: number;
 };
 
 const mult = (n: number) => `${n.toFixed(1)}×`;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
-export const LoopSimulator = ({ account, reserves }: Props) => {
-    const stableApr = useMemo(() => {
-        const ghoLike = reserves.find((r) => r.symbol === 'GHO') || reserves.find((r) => ['USDC', 'USDT', 'DAI'].includes(r.symbol));
-        return ghoLike?.borrowApr ?? 0.035;
-    }, [reserves]);
-
-    const cf = account.avgCollateralFactor || 0.8;
+export const LoopSimulator = ({ netWorthUsd, healthFactor, collateralFactor, borrowApr }: Props) => {
+    const cf = collateralFactor || 0.8;
     const [monthly, setMonthly] = useState(1000);
     const [months, setMonths] = useState(24);
     const [targetX, setTargetX] = useState(2);
-    const [targetHf, setTargetHf] = useState(() => clamp(account.healthFactor ?? 2, 1.2, 3));
+    const [targetHf, setTargetHf] = useState(() => clamp(healthFactor ?? 2, 1.2, 3));
 
-    const equity = Math.max(0, account.netWorthUsd) + monthly * months;
-    const model = useMemo(() => loopModel(equity, cf, targetHf, stableApr, months / 12), [equity, cf, targetHf, stableApr, months]);
+    const equity = Math.max(0, netWorthUsd) + monthly * months;
+    const model = useMemo(() => loopModel(equity, cf, targetHf, borrowApr, months / 12), [equity, cf, targetHf, borrowApr, months]);
 
     const lo = 1 / targetX;
     const liqM = 1 / targetHf;
@@ -73,7 +69,7 @@ export const LoopSimulator = ({ account, reserves }: Props) => {
                     label="Target price"
                     value={mult(targetX)}
                     min={1}
-                    max={5}
+                    max={10}
                     step={0.1}
                     pos={targetX}
                     onChange={setTargetX}
@@ -179,13 +175,14 @@ export const LoopSimulator = ({ account, reserves }: Props) => {
             <div className={styles.stats}>
                 <Stat label={`Loop net worth at ${mult(targetX)}`} value={fmtUsd(loopEnd, true)} accent />
                 <Stat label="Extra vs holding" value={`${edge >= 0 ? '+' : '−'}${fmtUsd(Math.abs(edge), true)}`} />
-                <Stat label="GHO debt" value={fmtUsd(model.debtUsd, true)} />
+                <Stat label="Debt" value={fmtUsd(model.debtUsd, true)} />
                 <Stat label={`Health factor at ${mult(targetX)}`} value={(targetHf * targetX).toFixed(2)} />
             </div>
             <p className={styles.note}>
-                Exposure {model.leverage.toFixed(2)}× on {fmtUsd(equity, true)} equity ({fmtUsd(account.netWorthUsd, true)} now +{' '}
-                {fmtUsd(monthly)}/mo for {months} mo). GHO at {fmtPct(stableApr)} APR; debt held flat so health factor moves
-                with price — looping liquidates near {mult(liqM)} on the way down. No auto-reborrow on gains.
+                Exposure {model.leverage.toFixed(2)}× on {fmtUsd(equity, true)} equity ({fmtUsd(netWorthUsd, true)} now +{' '}
+                {fmtUsd(monthly)}/mo for {months} mo). Borrowing at {fmtPct(borrowApr)} APR (median of your borrows); debt held
+                flat so health factor moves with price — looping liquidates near {mult(liqM)} on the way down. No auto-reborrow
+                on gains.
             </p>
         </div>
     );
