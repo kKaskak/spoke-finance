@@ -9,14 +9,13 @@ import { useApp } from '@/lib/app';
 import { fmtPct, fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
 import type { PlatformKey } from '@/lib/platform';
-import type { PairPosition, ReserveWithUser } from '@shared/types';
+import type { PairMarket, PairPosition, ReserveWithUser } from '@shared/types';
 import { AllocationDonut, type Slice } from './components/AllocationDonut';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
 import { HealthGauge } from './components/HealthGauge';
 import { LoopSimulator } from './components/LoopSimulator';
-import { type OtherRow, OtherPositions } from './components/OtherPositions';
 import { type PlatformRow, PlatformBreakdown } from './components/PlatformBreakdown';
-import { BorrowRow, SupplyRow } from './components/PositionList';
+import { BorrowList, type BorrowItem, SupplyList, type SupplyItem } from './components/PositionList';
 import styles from './Dashboard.module.scss';
 
 const usd0 = (n: number) => fmtUsd(n);
@@ -43,28 +42,57 @@ const pairToSlices = (positions: PairPosition[], key: 'suppliedUsd' | 'debtUsd',
 const pairAvailableToBorrow = (positions: PairPosition[]): number =>
     positions.reduce((s, p) => s + Math.max(0, p.suppliedUsd * p.maxLtv - p.debtUsd), 0);
 
-const pairToRows = (positions: PairPosition[], platform: 'morpho' | 'fluid'): OtherRow[] =>
-    positions.map((p) => ({
-        key: `${platform}:${p.id}`,
-        platform,
-        primarySymbol: p.supplySymbol,
-        primaryAddress: p.supplyAddress,
-        secondarySymbol: p.borrowSymbol,
-        secondaryAddress: p.borrowAddress,
-        suppliedAmount: p.supplied,
-        suppliedUsd: p.suppliedUsd,
-        debtAmount: p.debt,
-        debtUsd: p.debtUsd,
-        healthFactor: p.healthFactor
-    }));
+const pairMarketFor = (position: PairPosition, markets: PairMarket[]): PairMarket | undefined =>
+    markets.find((m) => m.id === position.marketId);
 
 export const Dashboard = () => {
     const { portfolio, otherPlatforms } = useApp();
     const { account, reserves, loading, error, connected } = portfolio;
     const { aaveV3Reserves, aaveV3Account, morpho, fluid } = otherPlatforms;
 
-    const supplies = useMemo(() => reserves.filter((r) => r.supplied > 0), [reserves]);
-    const borrows = useMemo(() => reserves.filter((r) => r.debt > 0), [reserves]);
+    const supplyItems: SupplyItem[] = useMemo(
+        () => [
+            ...reserves.filter((r) => r.supplied > 0).map((reserve): SupplyItem => ({ kind: 'pooled', platform: 'aave-v4', reserve })),
+            ...aaveV3Reserves.filter((r) => r.supplied > 0).map((reserve): SupplyItem => ({ kind: 'pooled', platform: 'aave-v3', reserve })),
+            ...morpho.positions
+                .filter((p) => p.suppliedUsd > 0)
+                .map((position): SupplyItem | null => {
+                    const market = pairMarketFor(position, morpho.markets);
+                    return market ? { kind: 'pair', platform: 'morpho', market, position } : null;
+                })
+                .filter((i): i is SupplyItem => i !== null),
+            ...fluid.positions
+                .filter((p) => p.suppliedUsd > 0)
+                .map((position): SupplyItem | null => {
+                    const market = pairMarketFor(position, fluid.markets);
+                    return market ? { kind: 'pair', platform: 'fluid', market, position } : null;
+                })
+                .filter((i): i is SupplyItem => i !== null)
+        ],
+        [reserves, aaveV3Reserves, morpho, fluid]
+    );
+
+    const borrowItems: BorrowItem[] = useMemo(
+        () => [
+            ...reserves.filter((r) => r.debt > 0).map((reserve): BorrowItem => ({ kind: 'pooled', platform: 'aave-v4', reserve })),
+            ...aaveV3Reserves.filter((r) => r.debt > 0).map((reserve): BorrowItem => ({ kind: 'pooled', platform: 'aave-v3', reserve })),
+            ...morpho.positions
+                .filter((p) => p.debtUsd > 0)
+                .map((position): BorrowItem | null => {
+                    const market = pairMarketFor(position, morpho.markets);
+                    return market ? { kind: 'pair', platform: 'morpho', market, position } : null;
+                })
+                .filter((i): i is BorrowItem => i !== null),
+            ...fluid.positions
+                .filter((p) => p.debtUsd > 0)
+                .map((position): BorrowItem | null => {
+                    const market = pairMarketFor(position, fluid.markets);
+                    return market ? { kind: 'pair', platform: 'fluid', market, position } : null;
+                })
+                .filter((i): i is BorrowItem => i !== null)
+        ],
+        [reserves, aaveV3Reserves, morpho, fluid]
+    );
 
     const collateralSlices = useMemo(
         () => [
@@ -131,28 +159,6 @@ export const Dashboard = () => {
     const totalNetWorthUsd = totalCollateralUsd - totalDebtUsd;
     const platformHfs = platformRows.map((p) => p.healthFactor).filter((hf): hf is number => hf !== null);
     const overallHealthFactor = platformHfs.length > 0 ? Math.min(...platformHfs) : null;
-
-    const otherRows: OtherRow[] = useMemo(
-        () =>
-            [
-                ...aaveV3Reserves
-                    .filter((r) => r.supplied > 0 || r.debt > 0)
-                    .map((r): OtherRow => ({
-                        key: `aave-v3:${r.underlying}`,
-                        platform: 'aave-v3',
-                        primarySymbol: r.symbol,
-                        primaryAddress: r.underlying,
-                        suppliedAmount: r.supplied,
-                        suppliedUsd: r.suppliedUsd,
-                        debtAmount: r.debt,
-                        debtUsd: r.debtUsd,
-                        healthFactor: undefined
-                    })),
-                ...pairToRows(morpho.positions, 'morpho'),
-                ...pairToRows(fluid.positions, 'fluid')
-            ].sort((a, b) => b.suppliedUsd + b.debtUsd - (a.suppliedUsd + a.debtUsd)),
-        [aaveV3Reserves, morpho.positions, fluid.positions]
-    );
 
     const market = useMemo(
         () => ({
@@ -302,27 +308,21 @@ export const Dashboard = () => {
 
             <Reveal delay={0.18}>
                 <Card title="Your supplies">
-                    {supplies.length === 0 ? (
+                    {supplyItems.length === 0 ? (
                         <p className={styles.muted}>You have no supplied assets.</p>
                     ) : (
-                        supplies.map((r) => <SupplyRow key={r.id} reserve={r} account={account.address} />)
+                        <SupplyList items={supplyItems} account={account.address} />
                     )}
                 </Card>
             </Reveal>
 
             <Reveal delay={0.24}>
                 <Card title="Your borrows">
-                    {borrows.length === 0 ? (
+                    {borrowItems.length === 0 ? (
                         <p className={styles.muted}>You have no borrowed assets.</p>
                     ) : (
-                        borrows.map((r) => <BorrowRow key={r.id} reserve={r} />)
+                        <BorrowList items={borrowItems} account={account.address} />
                     )}
-                </Card>
-            </Reveal>
-
-            <Reveal delay={0.3}>
-                <Card title="Other platforms">
-                    <OtherPositions rows={otherRows} />
                 </Card>
             </Reveal>
         </div>
