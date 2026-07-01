@@ -2,8 +2,8 @@ import { ethers } from 'ethers';
 import { PRICE_DECIMALS } from '../shared/constants';
 import type { AccountSummary, PositionResponse, Reserve, ReserveWithUser } from '../shared/types';
 import { aaveV3DataProvider, aaveV3Oracle, aaveV3Pool, erc20Iface } from './chain';
-import { decodeSymbol, multicall } from './multicall';
-import { withRetry } from './util';
+import { multicall } from './multicall';
+import { decodeSymbol, withRetry } from './util';
 
 type RawReserve = {
     id: number;
@@ -41,7 +41,7 @@ const loadRawReserves = async (): Promise<RawReserve[]> => {
     const data = list.map((underlying, id) => {
         const cfg = res[id * 3];
         const isActive = cfg.isActive as boolean;
-        const paused = (res[id * 3 + 1] as boolean) ?? false;
+        const paused = res[id * 3 + 1] as boolean;
         return {
             id,
             symbol: res[id * 3 + 2] as string,
@@ -83,12 +83,12 @@ const loadReserves = async (): Promise<Reserve[]> => {
     )) as any[];
     const data = raw.map((r, i) => {
         const reserveData = res[i * 2];
-        const priceUsd = Number((res[i * 2 + 1] as bigint) ?? 0n) / 10 ** PRICE_DECIMALS;
-        const totalSupplied = num(reserveData?.totalAToken ?? 0n, r.decimals);
-        const totalDebt = num(reserveData?.totalVariableDebt ?? 0n, r.decimals);
+        const priceUsd = Number(res[i * 2 + 1] as bigint) / 10 ** PRICE_DECIMALS;
+        const totalSupplied = num(reserveData.totalAToken, r.decimals);
+        const totalDebt = num(reserveData.totalVariableDebt, r.decimals);
         const utilization = totalSupplied > 0 ? totalDebt / totalSupplied : 0;
-        const borrowApr = Number(reserveData?.variableBorrowRate ?? 0n) / 1e27;
-        const supplyApr = Number(reserveData?.liquidityRate ?? 0n) / 1e27;
+        const borrowApr = Number(reserveData.variableBorrowRate) / 1e27;
+        const supplyApr = Number(reserveData.liquidityRate) / 1e27;
         return {
             id: r.id,
             symbol: r.symbol,
@@ -147,16 +147,16 @@ const loadPosition = async (address: string): Promise<PositionResponse> => {
     )) as any[];
     const merged: ReserveWithUser[] = reserves.map((reserve, i) => {
         const userData = res[i * 2];
-        const supplied = num(userData?.currentATokenBalance ?? 0n, reserve.decimals);
-        const debt = num(userData?.currentVariableDebt ?? 0n, reserve.decimals);
-        const walletBalance = num((res[i * 2 + 1] as bigint) ?? 0n, reserve.decimals);
+        const supplied = num(userData.currentATokenBalance, reserve.decimals);
+        const debt = num(userData.currentVariableDebt, reserve.decimals);
+        const walletBalance = num(res[i * 2 + 1] as bigint, reserve.decimals);
         return {
             ...reserve,
             supplied,
             suppliedUsd: supplied * reserve.priceUsd,
             debt,
             debtUsd: debt * reserve.priceUsd,
-            isCollateral: (userData?.usageAsCollateralEnabled as boolean) ?? false,
+            isCollateral: userData.usageAsCollateralEnabled as boolean,
             isBorrowed: debt > 0,
             walletBalance,
             walletBalanceUsd: walletBalance * reserve.priceUsd,

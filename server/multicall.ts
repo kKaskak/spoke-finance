@@ -20,42 +20,24 @@ const CHUNK = 80;
 
 const unwrap = (r: ethers.Result): unknown => (r.length === 1 ? r[0] : r);
 
-export const multicall = async (calls: Call[]): Promise<(unknown | null)[]> => {
-    const out: (unknown | null)[] = [];
-    for (let i = 0; i < calls.length; i += CHUNK) {
-        const slice = calls.slice(i, i + CHUNK);
-        const encoded = slice.map((c) => ({
-            target: c.target,
-            allowFailure: true,
-            callData: c.iface.encodeFunctionData(c.method, c.args ?? [])
-        }));
-        const res: { success: boolean; returnData: string }[] = await withRetry(() => mc.aggregate3(encoded));
-        slice.forEach((c, j) => {
-            const r = res[j];
-            if (c.decode) {
-                out.push(c.decode(r.returnData));
-                return;
-            }
-            if (!r.success || r.returnData === '0x') {
-                out.push(null);
-                return;
-            }
-            out.push(unwrap(c.iface.decodeFunctionResult(c.method, r.returnData)));
-        });
-    }
-    return out;
+const runChunk = async (slice: Call[]): Promise<unknown[]> => {
+    const encoded = slice.map((c) => ({
+        target: c.target,
+        allowFailure: true,
+        callData: c.iface.encodeFunctionData(c.method, c.args ?? [])
+    }));
+    const res: { success: boolean; returnData: string }[] = await withRetry(() => mc.aggregate3(encoded));
+    return slice.map((c, j) => {
+        const r = res[j];
+        if (!r.success || r.returnData === '0x') throw new Error(`multicall: ${c.method} on ${c.target} failed`);
+        if (c.decode) return c.decode(r.returnData);
+        return unwrap(c.iface.decodeFunctionResult(c.method, r.returnData));
+    });
 };
 
-// legacy tokens (e.g. MKR) return symbol() as bytes32 instead of string
-export const decodeSymbol = (data: string, fallback: string): string => {
-    if (!data || data === '0x') return fallback;
-    try {
-        return ethers.AbiCoder.defaultAbiCoder().decode(['string'], data)[0] as string;
-    } catch {
-        try {
-            return ethers.decodeBytes32String(data);
-        } catch {
-            return fallback;
-        }
-    }
+// a failed sub-call fails the whole load: better a visible error than a fabricated zero balance
+export const multicall = async (calls: Call[]): Promise<unknown[]> => {
+    const chunks: Call[][] = [];
+    for (let i = 0; i < calls.length; i += CHUNK) chunks.push(calls.slice(i, i + CHUNK));
+    return (await Promise.all(chunks.map(runChunk))).flat();
 };

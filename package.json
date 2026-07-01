@@ -9,7 +9,7 @@
     "dev:web": "vite",
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.server.json",
-    "test": "tsx src/lib/projection.test.ts",
+    "test": "tsx src/lib/projection.test.ts && tsx server/multicall.test.ts",
     "preview": "vite preview",
     "lint": "eslint ."
   },

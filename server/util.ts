@@ -38,15 +38,20 @@ export const mapLimit = async <T, R>(items: T[], limit: number, fn: (item: T, in
 const SYMBOL_SELECTOR = '0x95d89b41';
 
 // ponytail: a few legacy tokens (e.g. MKR) return symbol() as bytes32 instead of string; fall back to decode both ways
-export const resilientSymbol = async (provider: { call: (tx: { to: string; data: string }) => Promise<string> }, address: string): Promise<string> => {
-    const raw = await withRetry(() => provider.call({ to: address, data: SYMBOL_SELECTOR }));
+export const decodeSymbol = (data: string, fallback: string): string => {
+    if (!data || data === '0x') return fallback;
     try {
-        return ethers.AbiCoder.defaultAbiCoder().decode(['string'], raw)[0] as string;
+        return ethers.AbiCoder.defaultAbiCoder().decode(['string'], data)[0] as string;
     } catch {
         try {
-            return ethers.decodeBytes32String(raw);
+            return ethers.decodeBytes32String(data);
         } catch {
-            return address.slice(0, 6);
+            return fallback;
         }
     }
+};
+
+export const resilientSymbol = async (provider: { call: (tx: { to: string; data: string }) => Promise<string> }, address: string): Promise<string> => {
+    const raw = await withRetry(() => provider.call({ to: address, data: SYMBOL_SELECTOR }));
+    return decodeSymbol(raw, address.slice(0, 6));
 };

@@ -58,14 +58,15 @@ export const usePortfolio = (): Portfolio => {
             .catch((e) => active && setError(e.message))
             .finally(() => active && setLoading(false));
 
-        const poll = () => { if (!document.hidden) load(); };
+        const poll = () => {
+            if (!document.hidden) load().catch((e) => active && setError(e.message));
+        };
         const id = setInterval(poll, 60_000);
-        const onVisible = () => { if (!document.hidden) load(); };
-        document.addEventListener('visibilitychange', onVisible);
+        document.addEventListener('visibilitychange', poll);
         return () => {
             active = false;
             clearInterval(id);
-            document.removeEventListener('visibilitychange', onVisible);
+            document.removeEventListener('visibilitychange', poll);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address, tick]);

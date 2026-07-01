@@ -2,8 +2,8 @@ import { ethers } from 'ethers';
 import { PRICE_DECIMALS, RAY, SPOKE_ADDRESS, VALUE_SCALE } from '../shared/constants';
 import type { AccountSummary, PositionResponse, Reserve, ReserveWithUser } from '../shared/types';
 import { erc20Iface, hubIface, oracle, spoke } from './chain';
-import { decodeSymbol, multicall } from './multicall';
-import { withRetry } from './util';
+import { multicall } from './multicall';
+import { decodeSymbol, withRetry } from './util';
 
 type RawReserve = {
     id: number;
@@ -93,11 +93,11 @@ const loadReserves = async (): Promise<Reserve[]> => {
             { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getReserveTotalDebt', args: [r.id] },
             { target: r.hub, iface: hubIface, method: 'getAssetDrawnRate', args: [r.assetId] }
         ])
-    )) as (bigint | null)[];
+    )) as bigint[];
     const data = raw.map((r, i) => {
-        const supplied = res[i * 3] ?? 0n;
-        const debt = res[i * 3 + 1] ?? 0n;
-        const rate = res[i * 3 + 2] ?? 0n;
+        const supplied = res[i * 3];
+        const debt = res[i * 3 + 1];
+        const rate = res[i * 3 + 2];
         const priceUsd = Number(prices[i]) / 10 ** PRICE_DECIMALS;
         const totalSupplied = num(supplied, r.decimals);
         const totalDebt = num(debt, r.decimals);
@@ -163,21 +163,21 @@ const loadPosition = async (address: string): Promise<PositionResponse> => {
     )) as any[];
     const merged: ReserveWithUser[] = reserves.map((reserve, i) => {
         const base = i * 5;
-        const supplied = num((res[base] as bigint) ?? 0n, reserve.decimals);
-        const debt = num((res[base + 1] as bigint) ?? 0n, reserve.decimals);
+        const supplied = num(res[base] as bigint, reserve.decimals);
+        const debt = num(res[base + 1] as bigint, reserve.decimals);
         const status = res[base + 2];
-        const walletBalance = num((res[base + 3] as bigint) ?? 0n, reserve.decimals);
+        const walletBalance = num(res[base + 3] as bigint, reserve.decimals);
         return {
             ...reserve,
             supplied,
             suppliedUsd: supplied * reserve.priceUsd,
             debt,
             debtUsd: debt * reserve.priceUsd,
-            isCollateral: status?.isCollateral ?? false,
-            isBorrowed: status?.isBorrowed ?? false,
+            isCollateral: status.isCollateral as boolean,
+            isBorrowed: status.isBorrowed as boolean,
             walletBalance,
             walletBalanceUsd: walletBalance * reserve.priceUsd,
-            allowance: num((res[base + 4] as bigint) ?? 0n, reserve.decimals)
+            allowance: num(res[base + 4] as bigint, reserve.decimals)
         };
     });
 

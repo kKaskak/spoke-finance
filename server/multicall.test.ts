@@ -1,9 +1,11 @@
 import assert from 'node:assert';
 import { erc20Iface } from './chain';
-import { decodeSymbol, multicall } from './multicall';
+import { multicall } from './multicall';
+import { decodeSymbol } from './util';
 
 const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const MKR = '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2';
+const EOA = '0x1111111111111111111111111111111111111111';
 
 const run = async () => {
     const [usdcSym, usdcDec, mkrSym] = await multicall([
@@ -14,7 +16,8 @@ const run = async () => {
     assert.equal(usdcSym, 'USDC');
     assert.equal(Number(usdcDec), 6);
     assert.equal(mkrSym, 'MKR');
-    console.warn('multicall.test ok:', { usdcSym, usdcDec: Number(usdcDec), mkrSym });
+    await assert.rejects(multicall([{ target: EOA, iface: erc20Iface, method: 'decimals' }]), /multicall: decimals/);
+    console.warn('multicall.test ok:', { usdcSym, usdcDec: Number(usdcDec), mkrSym, failedCallThrows: true });
 };
 
 run().catch((e) => {
