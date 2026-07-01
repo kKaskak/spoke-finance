@@ -1,6 +1,6 @@
 # Spoke
 
-Connect a wallet to manage your Aave v4 Bluechip Spoke position (`0x973a023A77420ba610f06b3858aD991Df6d85A08`) and track your Aave v3, Morpho, and Fluid positions on Ethereum mainnet — all in one portfolio. Live health-factor projection, allocation charts, and per-asset market data.
+Connect a wallet to manage your Aave v4 Bluechip Spoke position (`0x973a023A77420ba610f06b3858aD991Df6d85A08`), Aave v3, Morpho, and Fluid positions on Ethereum mainnet — all in one portfolio. Live health-factor projection, allocation charts, and per-asset market data.
 
 ## Stack
 
