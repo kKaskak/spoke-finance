@@ -1,7 +1,9 @@
 import type { OtherMarketsResponse, OtherPositionsResponse, PositionResponse, Reserve } from '@shared/types';
 
+const API_BASE: string = import.meta.env.VITE_API_BASE ?? '';
+
 const get = async <T>(path: string): Promise<T> => {
-    const res = await fetch(path);
+    const res = await fetch(`${API_BASE}${path}`);
     if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? `request failed: ${res.status}`);

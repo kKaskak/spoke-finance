@@ -5,7 +5,7 @@ Connect a wallet to manage your Aave v4 Bluechip Spoke position (`0x973a023A7742
 ## Stack
 
 - **Frontend**: React + Vite + TypeScript, SCSS modules, recharts, react-router, ethers v6.
-- **API**: Cloudflare Pages Functions in production (`functions/api/*`), mirrored by an Express server for local dev — proxies on-chain reads (Alchemy RPC) so keys stay server-side and the heavy aggregation runs once.
+- **API**: Express (`server/`), hosted on Fly.io in production — proxies on-chain reads (Alchemy RPC) so keys stay server-side and the heavy aggregation runs once.
 - **Reads** go through the API; **writes** (supply/borrow/repay/withdraw/approve) are signed by the connected wallet.
 
 ## Setup
@@ -34,7 +34,7 @@ Open http://localhost:5173 and connect a wallet on Ethereum mainnet.
 
 ## Deploy
 
-Publishing a GitHub release deploys to Cloudflare Pages ([spoke.finance](https://spoke.finance)) via `.github/workflows/deploy.yml`.
+Publishing a GitHub release deploys the web app to Cloudflare Pages ([spoke.finance](https://spoke.finance)) and the API to Fly.io via `.github/workflows/deploy.yml`.
 
 ## Value scales (Aave v4 Spoke)
 
