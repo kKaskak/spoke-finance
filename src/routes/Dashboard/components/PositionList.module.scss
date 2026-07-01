@@ -54,7 +54,7 @@
 .breakdown {
     display: flex;
     flex-direction: column;
-    gap: var(--s-1);
+    gap: var(--s-2);
     flex: 1;
     min-width: 0;
 }
@@ -65,8 +65,18 @@
 }
 
 .breakdownPlatform {
+    width: 84px;
+    flex-shrink: 0;
     font-size: 12px;
-    color: var(--text-tertiary);
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breakdownRow .amountMain {
+    margin-left: auto;
 }
 
 .apr {
@@ -77,6 +87,9 @@
 }
 
 .breakdownRow .apr {
+    margin-left: 0;
+    width: 60px;
+    text-align: right;
     font-size: 13px;
 }
 
@@ -133,8 +146,9 @@
 }
 
 .pickerRow {
-    @include between;
+    @include row;
     @include clickable;
+    gap: var(--s-3);
     padding: var(--s-3);
     border: none;
     border-radius: var(--r-sm);
@@ -147,6 +161,7 @@
 }
 
 .pickerPlatform {
+    flex: 1;
     font-size: 14px;
     font-weight: 600;
     color: var(--text);

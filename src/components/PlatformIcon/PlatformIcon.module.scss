@@ -1,0 +1,16 @@
+.icon {
+    border-radius: 10px;
+    background: var(--surface-sub);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    flex-shrink: 0;
+}

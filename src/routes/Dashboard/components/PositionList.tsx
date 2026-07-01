@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/Button/Button';
 import { HealthBadge } from '@/components/HealthBadge/HealthBadge';
+import { PlatformIcon } from '@/components/PlatformIcon/PlatformIcon';
 import { TokenIcon } from '@/components/TokenIcon/TokenIcon';
 import { useApp, type PairPlatform, type PooledPlatform } from '@/lib/app';
 import { setAaveV3Collateral, setCollateral } from '@/lib/contracts';
@@ -159,6 +160,7 @@ const ProviderPicker = ({ entries, anchor, onPick, onClose }: PickerProps) =>
             <div className={styles.picker} style={{ top: anchor.top, right: anchor.right }}>
                 {entries.map((e) => (
                     <button key={e.key} type="button" className={styles.pickerRow} onClick={() => onPick(e)}>
+                        <PlatformIcon platform={e.platform} size={22} />
                         <span className={styles.pickerPlatform}>{PLATFORM_LABEL[e.platform]}</span>
                         <span className={styles.pickerAmount}>
                             {fmtToken(e.amount)} {e.symbol}
@@ -252,8 +254,9 @@ const GroupRow = ({ group, account, primaryKind, secondaryKind, aprAccent }: Gro
             <div className={styles.breakdown}>
                 {group.entries.map((e) => (
                     <div key={e.key} className={styles.breakdownRow}>
-                        <span className={styles.amountMain}>{fmtToken(e.amount)}</span>
+                        <PlatformIcon platform={e.platform} size={16} />
                         <span className={styles.breakdownPlatform}>{PLATFORM_LABEL[e.platform]}</span>
+                        <span className={styles.amountMain}>{fmtToken(e.amount)}</span>
                         <span className={[styles.apr, styles[aprAccent]].join(' ')}>{fmtPct(e.apr)}</span>
                     </div>
                 ))}

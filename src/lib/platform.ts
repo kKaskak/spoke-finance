@@ -20,3 +20,10 @@ export const PLATFORM_MARK: Record<PlatformKey, string> = {
     morpho: 'M',
     fluid: 'F'
 };
+
+export const PLATFORM_LOGO: Record<PlatformKey, string> = {
+    'aave-v4': 'https://icons.llama.fi/aave-v3.png',
+    'aave-v3': 'https://icons.llama.fi/aave-v3.png',
+    morpho: 'https://icons.llama.fi/morpho-blue.png',
+    fluid: 'https://icons.llama.fi/fluid.png'
+};

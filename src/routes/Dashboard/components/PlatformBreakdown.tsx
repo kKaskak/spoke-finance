@@ -1,6 +1,7 @@
 import { HealthBadge } from '@/components/HealthBadge/HealthBadge';
+import { PlatformIcon } from '@/components/PlatformIcon/PlatformIcon';
 import { fmtUsd } from '@/lib/format';
-import { PLATFORM_COLOR, PLATFORM_MARK, type PlatformKey } from '@/lib/platform';
+import type { PlatformKey } from '@/lib/platform';
 import styles from './PlatformBreakdown.module.scss';
 
 export type PlatformRow = {
@@ -21,12 +22,7 @@ export const PlatformBreakdown = ({ rows }: Props) => (
         {rows.map((p) => (
             <div key={p.platform} className={styles.row}>
                 <div className={styles.name}>
-                    <span
-                        className={styles.badge}
-                        style={{ background: `${PLATFORM_COLOR[p.platform]}1f`, color: PLATFORM_COLOR[p.platform] }}
-                    >
-                        {PLATFORM_MARK[p.platform]}
-                    </span>
+                    <PlatformIcon platform={p.platform} size={30} />
                     <span className={styles.label}>{p.label}</span>
                 </div>
                 <div className={styles.stat}>
