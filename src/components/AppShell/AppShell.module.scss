@@ -118,3 +118,20 @@
         padding: var(--s-6) var(--s-4) var(--s-8);
     }
 }
+
+.footer {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 var(--s-5) var(--s-6);
+    text-align: center;
+}
+
+.footerLink {
+    font-size: 13px;
+    color: var(--text-secondary);
+    transition: color 0.2s var(--ease);
+
+    &:hover {
+        color: var(--text);
+    }
+}

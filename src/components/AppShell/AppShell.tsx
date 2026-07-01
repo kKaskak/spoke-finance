@@ -85,6 +85,16 @@ export const AppShell = () => {
                         <Outlet />
                     </motion.div>
                 </div>
+                <footer className={styles.footer}>
+                    <a
+                        href="https://github.com/kKaskak/spoke-finance"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={styles.footerLink}
+                    >
+                        Open source on GitHub
+                    </a>
+                </footer>
             </main>
         </div>
     );
