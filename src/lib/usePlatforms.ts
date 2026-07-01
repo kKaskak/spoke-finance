@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { AccountSummary, PlatformSummary, ReserveWithUser } from '@shared/types';
 import { fetchOtherMarkets, fetchOtherPositions } from './api';
 import { zeroUser } from './usePortfolio';
@@ -21,11 +21,12 @@ export type OtherPlatforms = {
     fluid: PlatformSummary;
     loading: boolean;
     error: string | null;
+    refresh: () => void;
 };
 
 export const usePlatforms = (): OtherPlatforms => {
     const { account: address } = useWallet();
-    const [state, setState] = useState<Omit<OtherPlatforms, 'loading' | 'error'>>({
+    const [state, setState] = useState<Omit<OtherPlatforms, 'loading' | 'error' | 'refresh'>>({
         aaveV3Reserves: [],
         aaveV3Account: null,
         morpho: emptySummary('morpho', 'Morpho'),
@@ -33,6 +34,9 @@ export const usePlatforms = (): OtherPlatforms => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [tick, setTick] = useState(0);
+
+    const refresh = useCallback(() => setTick((t) => t + 1), []);
 
     useEffect(() => {
         let active = true;
@@ -68,7 +72,7 @@ export const usePlatforms = (): OtherPlatforms => {
             active = false;
             clearInterval(id);
         };
-    }, [address]);
+    }, [address, tick]);
 
-    return { ...state, loading, error };
+    return { ...state, loading, error, refresh };
 };

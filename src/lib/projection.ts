@@ -1,4 +1,4 @@
-import type { AccountSummary, ActionKind, ReserveWithUser } from '@shared/types';
+import type { AccountSummary, ActionKind, PairMarket, PairPosition, ReserveWithUser } from '@shared/types';
 
 export type Projection = {
     healthFactor: number | null;
@@ -67,6 +67,43 @@ export const holdNetWorth = (equityUsd: number, m: number): number => equityUsd 
 
 export const loopNetWorth = (equityUsd: number, model: LoopModel, m: number): number =>
     equityUsd * (1 + model.leverage * (m - 1)) - model.interestUsd;
+
+export type PairProjection = {
+    healthFactor: number | null;
+    suppliedUsd: number;
+    debtUsd: number;
+};
+
+// Simpler analogue of projectAction for isolated Morpho/Fluid market positions, which have no pooled account
+export const projectPairAction = (
+    market: PairMarket,
+    position: PairPosition | undefined,
+    kind: ActionKind,
+    amount: number
+): PairProjection => {
+    let suppliedUsd = position?.suppliedUsd ?? 0;
+    let debtUsd = position?.debtUsd ?? 0;
+    if (kind === 'supply') suppliedUsd += amount * market.supplyPriceUsd;
+    else if (kind === 'withdraw') suppliedUsd = Math.max(0, suppliedUsd - amount * market.supplyPriceUsd);
+    else if (kind === 'borrow') debtUsd += amount * market.borrowPriceUsd;
+    else debtUsd = Math.max(0, debtUsd - amount * market.borrowPriceUsd);
+    return { healthFactor: hf(suppliedUsd * market.maxLtv, debtUsd), suppliedUsd, debtUsd };
+};
+
+export const maxPairAmount = (
+    market: PairMarket,
+    position: PairPosition | undefined,
+    kind: ActionKind,
+    walletBalance: number
+): number => {
+    if (kind === 'supply') return walletBalance;
+    if (kind === 'withdraw') return position?.supplied ?? 0;
+    if (kind === 'repay') return Math.min(position?.debt ?? 0, walletBalance);
+    const suppliedUsd = position?.suppliedUsd ?? 0;
+    const debtUsd = position?.debtUsd ?? 0;
+    const availableUsd = Math.max(0, suppliedUsd * market.maxLtv - debtUsd);
+    return market.borrowPriceUsd > 0 ? availableUsd / market.borrowPriceUsd : 0;
+};
 
 export const maxAmount = (account: AccountSummary, reserve: ReserveWithUser, kind: ActionKind): number => {
     const price = reserve.priceUsd || 1;
