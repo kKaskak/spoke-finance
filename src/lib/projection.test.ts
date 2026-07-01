@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import type { AccountSummary, ReserveWithUser } from '@shared/types';
-import { maxAmount, projectAction } from './projection';
+import { holdNetWorth, loopModel, loopNetWorth, maxAmount, projectAction } from './projection';
 
 const account = {
     address: '0x0',
@@ -63,5 +63,15 @@ near(maxBorrow, 20550.09, 1);
 
 const noDebt = projectAction({ ...account, debtUsd: 0, borrowPowerUsd: 44039.22 } as AccountSummary, weth, 'supply', 1);
 assert(noDebt.healthFactor === null, 'no debt means infinite HF');
+
+near(loopModel(1000, 0.8, 2.0, 0, 0).leverage, 1.667, 0.01);
+near(loopModel(1000, 0.8, 1.9, 0, 0).leverage, 1.727, 0.01);
+
+const loop = loopModel(10000, 0.8, 2.0, 0.035, 2);
+near(loop.debtUsd, 6667, 1);
+near(loop.interestUsd, 6667 * 0.035 * 2, 1);
+near(holdNetWorth(10000, 1), 10000, 0.01);
+near(loopNetWorth(10000, loop, 1), 10000 - loop.interestUsd, 0.01);
+assert(loopNetWorth(10000, loop, 2) > holdNetWorth(10000, 2), 'loop should beat hold when price doubles');
 
 console.log('projection checks passed');
