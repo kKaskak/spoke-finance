@@ -66,64 +66,64 @@ type Entry = {
 const supplyEntry = (item: SupplyItem): Entry =>
     item.kind === 'pooled'
         ? {
-              key: `${item.platform}-${item.reserve.id}`,
-              platform: item.platform,
-              symbol: item.reserve.symbol,
-              address: item.reserve.underlying,
-              amount: item.reserve.supplied,
-              amountUsd: item.reserve.suppliedUsd,
-              apr: item.reserve.supplyApr,
-              healthFactor: undefined,
-              isCollateral: item.reserve.isCollateral,
-              canBeCollateral: item.reserve.canBeCollateral,
-              reserveId: item.reserve.id,
-              marketId: undefined
-          }
+            key: `${item.platform}-${item.reserve.id}`,
+            platform: item.platform,
+            symbol: item.reserve.symbol,
+            address: item.reserve.underlying,
+            amount: item.reserve.supplied,
+            amountUsd: item.reserve.suppliedUsd,
+            apr: item.reserve.supplyApr,
+            healthFactor: undefined,
+            isCollateral: item.reserve.isCollateral,
+            canBeCollateral: item.reserve.canBeCollateral,
+            reserveId: item.reserve.id,
+            marketId: undefined
+        }
         : {
-              key: `${item.platform}-${item.position.id}`,
-              platform: item.platform,
-              symbol: item.market.supplySymbol,
-              address: item.market.supplyAddress,
-              amount: item.position.supplied,
-              amountUsd: item.position.suppliedUsd,
-              apr: item.market.supplyApr,
-              healthFactor: undefined,
-              isCollateral: undefined,
-              canBeCollateral: false,
-              reserveId: undefined,
-              marketId: item.position.marketId
-          };
+            key: `${item.platform}-${item.position.id}`,
+            platform: item.platform,
+            symbol: item.market.supplySymbol,
+            address: item.market.supplyAddress,
+            amount: item.position.supplied,
+            amountUsd: item.position.suppliedUsd,
+            apr: item.market.supplyApr,
+            healthFactor: undefined,
+            isCollateral: undefined,
+            canBeCollateral: false,
+            reserveId: undefined,
+            marketId: item.position.marketId
+        };
 
 const borrowEntry = (item: BorrowItem): Entry =>
     item.kind === 'pooled'
         ? {
-              key: `${item.platform}-${item.reserve.id}`,
-              platform: item.platform,
-              symbol: item.reserve.symbol,
-              address: item.reserve.underlying,
-              amount: item.reserve.debt,
-              amountUsd: item.reserve.debtUsd,
-              apr: item.reserve.borrowApr,
-              healthFactor: undefined,
-              isCollateral: undefined,
-              canBeCollateral: false,
-              reserveId: item.reserve.id,
-              marketId: undefined
-          }
+            key: `${item.platform}-${item.reserve.id}`,
+            platform: item.platform,
+            symbol: item.reserve.symbol,
+            address: item.reserve.underlying,
+            amount: item.reserve.debt,
+            amountUsd: item.reserve.debtUsd,
+            apr: item.reserve.borrowApr,
+            healthFactor: undefined,
+            isCollateral: undefined,
+            canBeCollateral: false,
+            reserveId: item.reserve.id,
+            marketId: undefined
+        }
         : {
-              key: `${item.platform}-${item.position.id}`,
-              platform: item.platform,
-              symbol: item.market.borrowSymbol,
-              address: item.market.borrowAddress,
-              amount: item.position.debt,
-              amountUsd: item.position.debtUsd,
-              apr: item.market.borrowApr,
-              healthFactor: item.position.healthFactor,
-              isCollateral: undefined,
-              canBeCollateral: false,
-              reserveId: undefined,
-              marketId: item.position.marketId
-          };
+            key: `${item.platform}-${item.position.id}`,
+            platform: item.platform,
+            symbol: item.market.borrowSymbol,
+            address: item.market.borrowAddress,
+            amount: item.position.debt,
+            amountUsd: item.position.debtUsd,
+            apr: item.market.borrowApr,
+            healthFactor: item.position.healthFactor,
+            isCollateral: undefined,
+            canBeCollateral: false,
+            reserveId: undefined,
+            marketId: item.position.marketId
+        };
 
 type Group = {
     symbol: string;
