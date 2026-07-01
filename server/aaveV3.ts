@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { PRICE_DECIMALS } from '../shared/constants';
 import type { AccountSummary, PositionResponse, Reserve, ReserveWithUser } from '../shared/types';
-import { aaveV3DataProvider, aaveV3Oracle, aaveV3Pool, erc20Iface } from './chain';
+import { erc20Iface, getAaveV3DataProvider, getAaveV3Oracle, getAaveV3Pool } from './chain';
 import { multicall } from './multicall';
 import { decodeSymbol, withRetry } from './util';
 
@@ -29,7 +29,8 @@ const positionInflight = new Map<string, Promise<PositionResponse>>();
 
 const loadRawReserves = async (): Promise<RawReserve[]> => {
     if (rawCache && Date.now() - rawCache.at < 60_000) return rawCache.data;
-    const list: string[] = await withRetry(() => aaveV3Pool.getReservesList());
+    const aaveV3DataProvider = getAaveV3DataProvider();
+    const list: string[] = await withRetry(() => getAaveV3Pool().getReservesList());
     const dp = aaveV3DataProvider.target as string;
     const res = (await multicall(
         list.flatMap((underlying) => [
@@ -73,6 +74,8 @@ export const getReserves = async (): Promise<Reserve[]> => {
 
 const loadReserves = async (): Promise<Reserve[]> => {
     const raw = await loadRawReserves();
+    const aaveV3DataProvider = getAaveV3DataProvider();
+    const aaveV3Oracle = getAaveV3Oracle();
     const dp = aaveV3DataProvider.target as string;
     const oracleAddr = aaveV3Oracle.target as string;
     const res = (await multicall(
@@ -131,13 +134,14 @@ export const getPosition = async (address: string): Promise<PositionResponse> =>
 
 const loadPosition = async (address: string): Promise<PositionResponse> => {
     const reserves = await getReserves();
-    const acc = await withRetry(() => aaveV3Pool.getUserAccountData(address));
+    const acc = await withRetry(() => getAaveV3Pool().getUserAccountData(address));
     const collateralUsd = Number(acc.totalCollateralBase) / 10 ** PRICE_DECIMALS;
     const debtUsd = Number(acc.totalDebtBase) / 10 ** PRICE_DECIMALS;
     const availableBorrowsUsd = Number(acc.availableBorrowsBase) / 10 ** PRICE_DECIMALS;
     const avgCollateralFactor = Number(acc.ltv) / 10000;
     const maxHf = ethers.MaxUint256;
 
+    const aaveV3DataProvider = getAaveV3DataProvider();
     const dp = aaveV3DataProvider.target as string;
     const res = (await multicall(
         reserves.flatMap((reserve) => [

@@ -1,12 +1,13 @@
 import { ethers } from 'ethers';
-import { provider } from './chain';
+import { getProvider } from './chain';
 import { withRetry } from './util';
 
 const MULTICALL3 = '0xcA11bde05977b3631167028862bE2a173976CA11';
 const MULTICALL3_ABI = [
     'function aggregate3(tuple(address target, bool allowFailure, bytes callData)[] calls) view returns (tuple(bool success, bytes returnData)[])'
 ];
-const mc = new ethers.Contract(MULTICALL3, MULTICALL3_ABI, provider);
+let _mc: ethers.Contract | undefined;
+const mc = () => (_mc ??= new ethers.Contract(MULTICALL3, MULTICALL3_ABI, getProvider()));
 
 export type Call = {
     target: string;
@@ -26,7 +27,7 @@ const runChunk = async (slice: Call[]): Promise<unknown[]> => {
         allowFailure: true,
         callData: c.iface.encodeFunctionData(c.method, c.args ?? [])
     }));
-    const res: { success: boolean; returnData: string }[] = await withRetry(() => mc.aggregate3(encoded));
+    const res: { success: boolean; returnData: string }[] = await withRetry(() => mc().aggregate3(encoded));
     return slice.map((c, j) => {
         const r = res[j];
         if (!r.success || r.returnData === '0x') throw new Error(`multicall: ${c.method} on ${c.target} failed`);

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { PRICE_DECIMALS, RAY, SPOKE_ADDRESS, VALUE_SCALE } from '../shared/constants';
 import type { AccountSummary, PositionResponse, Reserve, ReserveWithUser } from '../shared/types';
-import { erc20Iface, hubIface, oracle, spoke } from './chain';
+import { erc20Iface, getOracle, getSpoke, hubIface } from './chain';
 import { multicall } from './multicall';
 import { decodeSymbol, withRetry } from './util';
 
@@ -30,6 +30,7 @@ const positionInflight = new Map<string, Promise<PositionResponse>>();
 
 const loadRawReserves = async (): Promise<RawReserve[]> => {
     if (rawCache && Date.now() - rawCache.at < 60_000) return rawCache.data;
+    const spoke = getSpoke();
     const count = Number(await spoke.getReserveCount());
     const ids = Array.from({ length: count }, (_, i) => i);
 
@@ -86,7 +87,8 @@ export const getReserves = async (): Promise<Reserve[]> => {
 
 const loadReserves = async (): Promise<Reserve[]> => {
     const raw = await loadRawReserves();
-    const prices: bigint[] = await withRetry(() => oracle.getReservesPrices(raw.map((r) => r.id)));
+    const spoke = getSpoke();
+    const prices: bigint[] = await withRetry(() => getOracle().getReservesPrices(raw.map((r) => r.id)));
     const res = (await multicall(
         raw.flatMap((r) => [
             { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getReserveSuppliedAssets', args: [r.id] },
@@ -146,6 +148,7 @@ export const getPosition = async (address: string): Promise<PositionResponse> =>
 
 const loadPosition = async (address: string): Promise<PositionResponse> => {
     const reserves = await getReserves();
+    const spoke = getSpoke();
     const acc = await withRetry(() => spoke.getUserAccountData(address));
     const collateralUsd = Number(acc.totalCollateralValue) / VALUE_SCALE;
     const debtUsd = Number(acc.totalDebtValueRay) / VALUE_SCALE / RAY;

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { FLUID_NATIVE_ETH, PRICE_DECIMALS, WETH_ADDRESS } from '../shared/constants';
 import type { PairMarket, PairPosition, PlatformSummary } from '../shared/types';
-import { aaveV3Oracle, erc20, fluidVaultResolver, provider } from './chain';
+import { erc20, getAaveV3Oracle, getFluidVaultResolver, getProvider } from './chain';
 import { mapLimit, resilientSymbol, withRetry } from './util';
 
 const isNativeEth = (address: string) => address.toLowerCase() === FLUID_NATIVE_ETH.toLowerCase();
@@ -43,7 +43,7 @@ const tokenMeta = (address: string): Promise<TokenMeta> => {
     let p = metaCache.get(address);
     if (!p) {
         const token = erc20(address);
-        p = Promise.all([resilientSymbol(provider, address), withRetry(() => token.decimals())]).then(
+        p = Promise.all([resilientSymbol(getProvider(), address), withRetry(() => token.decimals())]).then(
             ([symbol, decimals]) => ({ symbol, decimals: Number(decimals) })
         );
         metaCache.set(address, p);
@@ -56,7 +56,7 @@ const priceUsd = (address: string): Promise<number> => {
     const lookup = isNativeEth(address) ? WETH_ADDRESS : address;
     let p = priceCache.get(lookup);
     if (!p) {
-        p = withRetry(() => aaveV3Oracle.getAssetPrice(lookup))
+        p = withRetry(() => getAaveV3Oracle().getAssetPrice(lookup))
             .then((raw: bigint) => Number(raw) / 10 ** PRICE_DECIMALS)
             .catch(() => 0);
         priceCache.set(lookup, p);
@@ -72,7 +72,7 @@ let vaultsCache: { at: number; data: VaultEntireData[] } | null = null;
 
 const loadVaults = async (): Promise<VaultEntireData[]> => {
     if (vaultsCache && Date.now() - vaultsCache.at < 60_000) return vaultsCache.data;
-    const data: VaultEntireData[] = await withRetry(() => fluidVaultResolver.getVaultsEntireData());
+    const data: VaultEntireData[] = await withRetry(() => getFluidVaultResolver().getVaultsEntireData());
     vaultsCache = { at: Date.now(), data };
     return data;
 };
@@ -143,7 +143,7 @@ export const getSummary = async (address: string): Promise<PlatformSummary> => {
 const loadSummary = async (address: string): Promise<PlatformSummary> => {
     const [markets, [userPositions, vaultsData]] = await Promise.all([
         getMarkets(),
-        withRetry(() => fluidVaultResolver.positionsByUser(address)) as Promise<[UserPosition[], VaultEntireData[]]>
+        withRetry(() => getFluidVaultResolver().positionsByUser(address)) as Promise<[UserPosition[], VaultEntireData[]]>
     ]);
 
     const rows = userPositions
