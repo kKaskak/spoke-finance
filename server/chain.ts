@@ -22,20 +22,16 @@ import {
 // ponytail: Node-only; no-op on Workers, where nodejs_compat populates process.env
 try { process.loadEnvFile?.(); } catch { /* no .env file (Cloudflare/CI) */ }
 
-let provider: ethers.JsonRpcProvider | undefined;
-// Workers forbid timers/IO in global scope, so the provider is built on first use inside a handler
+// Workers cancel a request's pending work when it ends, so a shared provider poisons later requests; build per request
 export const getProvider = () => {
-    if (!provider) {
-        const rpc = process.env.ALCHEMY_RPC_URL;
-        if (!rpc) throw new Error('ALCHEMY_RPC_URL missing in .env');
-        provider = new ethers.JsonRpcProvider(rpc, CHAIN_ID, { staticNetwork: true });
-    }
-    return provider;
+    const rpc = process.env.ALCHEMY_RPC_URL;
+    if (!rpc) throw new Error('ALCHEMY_RPC_URL missing in .env');
+    return new ethers.JsonRpcProvider(rpc, CHAIN_ID, { staticNetwork: true });
 };
 
 const lazyContract = (address: string, abi: ethers.InterfaceAbi) => {
-    let c: ethers.Contract | undefined;
-    return () => (c ??= new ethers.Contract(address, abi, getProvider()));
+    const iface = new ethers.Interface(abi);
+    return () => new ethers.Contract(address, iface, getProvider());
 };
 
 export const getSpoke = lazyContract(SPOKE_ADDRESS, SPOKE_READ_ABI);

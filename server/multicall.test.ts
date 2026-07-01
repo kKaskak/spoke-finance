@@ -17,7 +17,9 @@ const run = async () => {
     assert.equal(Number(usdcDec), 6);
     assert.equal(mkrSym, 'MKR');
     await assert.rejects(multicall([{ target: EOA, iface: erc20Iface, method: 'decimals' }]), /multicall: decimals/);
-    console.warn('multicall.test ok:', { usdcSym, usdcDec: Number(usdcDec), mkrSym, failedCallThrows: true });
+    const [soft] = await multicall([{ target: EOA, iface: erc20Iface, method: 'decimals', soft: true }]);
+    assert.equal(soft, undefined);
+    console.warn('multicall.test ok:', { usdcSym, usdcDec: Number(usdcDec), mkrSym, failedCallThrows: true, softCallUndefined: true });
 };
 
 run().catch((e) => {

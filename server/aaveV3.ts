@@ -23,9 +23,7 @@ const num = (value: bigint, decimals: number) => Number(ethers.formatUnits(value
 
 let rawCache: { at: number; data: RawReserve[] } | null = null;
 let reservesCache: { at: number; data: Reserve[] } | null = null;
-let reservesInflight: Promise<Reserve[]> | null = null;
 const positionCache = new Map<string, { at: number; data: PositionResponse }>();
-const positionInflight = new Map<string, Promise<PositionResponse>>();
 
 const loadRawReserves = async (): Promise<RawReserve[]> => {
     if (rawCache && Date.now() - rawCache.at < 60_000) return rawCache.data;
@@ -63,13 +61,7 @@ const loadRawReserves = async (): Promise<RawReserve[]> => {
 
 export const getReserves = async (): Promise<Reserve[]> => {
     if (reservesCache && Date.now() - reservesCache.at < 15_000) return reservesCache.data;
-    if (reservesInflight) return reservesInflight;
-    reservesInflight = loadReserves();
-    try {
-        return await reservesInflight;
-    } finally {
-        reservesInflight = null;
-    }
+    return loadReserves();
 };
 
 const loadReserves = async (): Promise<Reserve[]> => {
@@ -121,15 +113,7 @@ const loadReserves = async (): Promise<Reserve[]> => {
 export const getPosition = async (address: string): Promise<PositionResponse> => {
     const cached = positionCache.get(address);
     if (cached && Date.now() - cached.at < 10_000) return cached.data;
-    const existing = positionInflight.get(address);
-    if (existing) return existing;
-    const promise = loadPosition(address);
-    positionInflight.set(address, promise);
-    try {
-        return await promise;
-    } finally {
-        positionInflight.delete(address);
-    }
+    return loadPosition(address);
 };
 
 const loadPosition = async (address: string): Promise<PositionResponse> => {

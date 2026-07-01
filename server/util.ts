@@ -22,21 +22,6 @@ export const withRetry = async <T>(fn: () => Promise<T>, tries = 3): Promise<T> 
     }
 };
 
-export const mapLimit = async <T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> => {
-    const out: R[] = new Array(items.length);
-    let next = 0;
-    const worker = async () => {
-        while (next < items.length) {
-            const i = next++;
-            out[i] = await withRetry(() => fn(items[i], i));
-        }
-    };
-    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-    return out;
-};
-
-const SYMBOL_SELECTOR = '0x95d89b41';
-
 // ponytail: a few legacy tokens (e.g. MKR) return symbol() as bytes32 instead of string; fall back to decode both ways
 export const decodeSymbol = (data: string, fallback: string): string => {
     if (!data || data === '0x') return fallback;
@@ -49,9 +34,4 @@ export const decodeSymbol = (data: string, fallback: string): string => {
             return fallback;
         }
     }
-};
-
-export const resilientSymbol = async (provider: { call: (tx: { to: string; data: string }) => Promise<string> }, address: string): Promise<string> => {
-    const raw = await withRetry(() => provider.call({ to: address, data: SYMBOL_SELECTOR }));
-    return decodeSymbol(raw, address.slice(0, 6));
 };

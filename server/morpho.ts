@@ -116,17 +116,10 @@ const toMarket = (m: MorphoMarket): PairMarket | null => {
 };
 
 let marketsCache: { at: number; data: PairMarket[] } | null = null;
-let marketsInflight: Promise<PairMarket[]> | null = null;
 
 export const getMarkets = async (): Promise<PairMarket[]> => {
     if (marketsCache && Date.now() - marketsCache.at < 60_000) return marketsCache.data;
-    if (marketsInflight) return marketsInflight;
-    marketsInflight = loadMarkets();
-    try {
-        return await marketsInflight;
-    } finally {
-        marketsInflight = null;
-    }
+    return loadMarkets();
 };
 
 const loadMarkets = async (): Promise<PairMarket[]> => {
@@ -137,20 +130,11 @@ const loadMarkets = async (): Promise<PairMarket[]> => {
 };
 
 const summaryCache = new Map<string, { at: number; data: PlatformSummary }>();
-const summaryInflight = new Map<string, Promise<PlatformSummary>>();
 
 export const getSummary = async (address: string): Promise<PlatformSummary> => {
     const cached = summaryCache.get(address);
     if (cached && Date.now() - cached.at < 10_000) return cached.data;
-    const existing = summaryInflight.get(address);
-    if (existing) return existing;
-    const promise = loadSummary(address);
-    summaryInflight.set(address, promise);
-    try {
-        return await promise;
-    } finally {
-        summaryInflight.delete(address);
-    }
+    return loadSummary(address);
 };
 
 const loadSummary = async (address: string): Promise<PlatformSummary> => {

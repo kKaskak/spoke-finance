@@ -1,10 +1,11 @@
 import { ethers } from 'ethers';
 import { getPosition } from '../../../server/data';
+import { cachedJson, type CacheCtx } from '../_cache';
 
-export const onRequestGet = async (context: { params: { address: string } }) => {
+export const onRequestGet = async (context: CacheCtx & { params: { address: string } }) => {
     const { address } = context.params;
     if (!ethers.isAddress(address)) {
         return Response.json({ error: 'invalid address' }, { status: 400 });
     }
-    return Response.json(await getPosition(ethers.getAddress(address)));
+    return cachedJson(context, 10, () => getPosition(ethers.getAddress(address)));
 };

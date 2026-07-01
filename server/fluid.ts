@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 import { FLUID_NATIVE_ETH, PRICE_DECIMALS, WETH_ADDRESS } from '../shared/constants';
 import type { PairMarket, PairPosition, PlatformSummary } from '../shared/types';
-import { erc20, getAaveV3Oracle, getFluidVaultResolver, getProvider } from './chain';
-import { mapLimit, resilientSymbol, withRetry } from './util';
+import { erc20Iface, getAaveV3Oracle, getFluidVaultResolver } from './chain';
+import { multicall } from './multicall';
+import { decodeSymbol, withRetry } from './util';
 
 const isNativeEth = (address: string) => address.toLowerCase() === FLUID_NATIVE_ETH.toLowerCase();
 
@@ -37,37 +38,36 @@ type UserPosition = {
 
 type TokenMeta = { symbol: string; decimals: number };
 
-const metaCache = new Map<string, Promise<TokenMeta>>();
-const tokenMeta = (address: string): Promise<TokenMeta> => {
-    if (isNativeEth(address)) return Promise.resolve({ symbol: 'ETH', decimals: 18 });
-    let p = metaCache.get(address);
-    if (!p) {
-        const token = erc20(address);
-        p = Promise.all([resilientSymbol(getProvider(), address), withRetry(() => token.decimals())]).then(
-            ([symbol, decimals]) => ({ symbol, decimals: Number(decimals) })
-        );
-        metaCache.set(address, p);
-    }
-    return p;
+// value caches only: promises cached across requests get canceled by the Workers runtime
+const metaCache = new Map<string, TokenMeta>();
+const priceCache = new Map<string, number>();
+
+const ensureTokenData = async (addresses: string[]) => {
+    const needMeta = [...new Set(addresses.filter((a) => !isNativeEth(a) && !metaCache.has(a)))];
+    const needPrice = [...new Set(addresses.map((a) => (isNativeEth(a) ? WETH_ADDRESS : a)).filter((a) => !priceCache.has(a)))];
+    if (!needMeta.length && !needPrice.length) return;
+    const oracle = getAaveV3Oracle();
+    const res = await multicall([
+        ...needMeta.flatMap((a) => [
+            { target: a, iface: erc20Iface, method: 'symbol', soft: true, decode: (d: string) => decodeSymbol(d, a.slice(0, 6)) },
+            { target: a, iface: erc20Iface, method: 'decimals' }
+        ]),
+        ...needPrice.map((a) => ({ target: oracle.target as string, iface: oracle.interface, method: 'getAssetPrice', args: [a], soft: true }))
+    ]);
+    needMeta.forEach((a, i) => metaCache.set(a, { symbol: (res[i * 2] as string) ?? a.slice(0, 6), decimals: Number(res[i * 2 + 1]) }));
+    needPrice.forEach((a, i) => {
+        const raw = res[needMeta.length * 2 + i];
+        priceCache.set(a, raw === undefined ? 0 : Number(raw) / 10 ** PRICE_DECIMALS);
+    });
 };
 
-const priceCache = new Map<string, Promise<number>>();
-const priceUsd = (address: string): Promise<number> => {
-    const lookup = isNativeEth(address) ? WETH_ADDRESS : address;
-    let p = priceCache.get(lookup);
-    if (!p) {
-        p = withRetry(() => getAaveV3Oracle().getAssetPrice(lookup))
-            .then((raw: bigint) => Number(raw) / 10 ** PRICE_DECIMALS)
-            .catch(() => 0);
-        priceCache.set(lookup, p);
-    }
-    return p;
-};
+const tokenMeta = (address: string): TokenMeta =>
+    isNativeEth(address) ? { symbol: 'ETH', decimals: 18 } : metaCache.get(address)!;
+const priceUsd = (address: string): number => priceCache.get(isNativeEth(address) ? WETH_ADDRESS : address) ?? 0;
 
 const isSimpleVault = (v: VaultEntireData) => !v.isSmartCol && !v.isSmartDebt;
 
 let marketsCache: { at: number; data: PairMarket[] } | null = null;
-let marketsInflight: Promise<PairMarket[]> | null = null;
 let vaultsCache: { at: number; data: VaultEntireData[] } | null = null;
 
 const loadVaults = async (): Promise<VaultEntireData[]> => {
@@ -79,26 +79,19 @@ const loadVaults = async (): Promise<VaultEntireData[]> => {
 
 export const getMarkets = async (): Promise<PairMarket[]> => {
     if (marketsCache && Date.now() - marketsCache.at < 60_000) return marketsCache.data;
-    if (marketsInflight) return marketsInflight;
-    marketsInflight = buildMarkets();
-    try {
-        return await marketsInflight;
-    } finally {
-        marketsInflight = null;
-    }
+    return buildMarkets();
 };
 
 const buildMarkets = async (): Promise<PairMarket[]> => {
     const vaults = (await loadVaults()).filter(isSimpleVault);
-    const markets = await mapLimit(vaults, 5, async (v): Promise<PairMarket> => {
+    await ensureTokenData(vaults.flatMap((v) => [v.constantVariables.supplyToken.token0, v.constantVariables.borrowToken.token0]));
+    const markets = vaults.map((v): PairMarket => {
         const supplyToken = v.constantVariables.supplyToken.token0;
         const borrowToken = v.constantVariables.borrowToken.token0;
-        const [supplyMeta, borrowMeta, supplyPrice, borrowPrice] = await Promise.all([
-            tokenMeta(supplyToken),
-            tokenMeta(borrowToken),
-            priceUsd(supplyToken),
-            priceUsd(borrowToken)
-        ]);
+        const supplyMeta = tokenMeta(supplyToken);
+        const borrowMeta = tokenMeta(borrowToken);
+        const supplyPrice = priceUsd(supplyToken);
+        const borrowPrice = priceUsd(borrowToken);
         const totalSuppliedUsd = Number(ethers.formatUnits(v.totalSupplyAndBorrow.totalSupplyVault, supplyMeta.decimals)) * supplyPrice;
         const totalDebtUsd = Number(ethers.formatUnits(v.totalSupplyAndBorrow.totalBorrowVault, borrowMeta.decimals)) * borrowPrice;
         return {
@@ -124,20 +117,11 @@ const buildMarkets = async (): Promise<PairMarket[]> => {
 };
 
 const summaryCache = new Map<string, { at: number; data: PlatformSummary }>();
-const summaryInflight = new Map<string, Promise<PlatformSummary>>();
 
 export const getSummary = async (address: string): Promise<PlatformSummary> => {
     const cached = summaryCache.get(address);
     if (cached && Date.now() - cached.at < 10_000) return cached.data;
-    const existing = summaryInflight.get(address);
-    if (existing) return existing;
-    const promise = loadSummary(address);
-    summaryInflight.set(address, promise);
-    try {
-        return await promise;
-    } finally {
-        summaryInflight.delete(address);
-    }
+    return loadSummary(address);
 };
 
 const loadSummary = async (address: string): Promise<PlatformSummary> => {
@@ -150,15 +134,14 @@ const loadSummary = async (address: string): Promise<PlatformSummary> => {
         .map((position, i) => ({ position, vault: vaultsData[i] }))
         .filter(({ position, vault }) => !position.isLiquidated && isSimpleVault(vault));
 
-    const positions: PairPosition[] = await mapLimit(rows, 5, async ({ position, vault }): Promise<PairPosition> => {
+    await ensureTokenData(rows.flatMap(({ vault }) => [vault.constantVariables.supplyToken.token0, vault.constantVariables.borrowToken.token0]));
+    const positions: PairPosition[] = rows.map(({ position, vault }): PairPosition => {
         const supplyToken = vault.constantVariables.supplyToken.token0;
         const borrowToken = vault.constantVariables.borrowToken.token0;
-        const [supplyMeta, borrowMeta, supplyPrice, borrowPrice] = await Promise.all([
-            tokenMeta(supplyToken),
-            tokenMeta(borrowToken),
-            priceUsd(supplyToken),
-            priceUsd(borrowToken)
-        ]);
+        const supplyMeta = tokenMeta(supplyToken);
+        const borrowMeta = tokenMeta(borrowToken);
+        const supplyPrice = priceUsd(supplyToken);
+        const borrowPrice = priceUsd(borrowToken);
         const supplied = Number(ethers.formatUnits(position.supply, supplyMeta.decimals));
         const debt = Number(ethers.formatUnits(position.borrow, borrowMeta.decimals));
         const suppliedUsd = supplied * supplyPrice;
