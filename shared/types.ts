@@ -60,8 +60,12 @@ export type PairMarket = {
     id: string;
     supplySymbol: string;
     supplyAddress: string;
+    supplyDecimals: number;
+    supplyPriceUsd: number;
     borrowSymbol: string;
     borrowAddress: string;
+    borrowDecimals: number;
+    borrowPriceUsd: number;
     maxLtv: number;
     supplyApr: number;
     borrowApr: number;

@@ -1,13 +1,10 @@
 import { ethers } from 'ethers';
-import { PRICE_DECIMALS } from '../shared/constants';
+import { FLUID_NATIVE_ETH, PRICE_DECIMALS, WETH_ADDRESS } from '../shared/constants';
 import type { PairMarket, PairPosition, PlatformSummary } from '../shared/types';
 import { aaveV3Oracle, erc20, fluidVaultResolver, provider } from './chain';
 import { mapLimit, resilientSymbol, withRetry } from './util';
 
-// Fluid represents native ETH with this sentinel address rather than WETH; it has no contract code
-const NATIVE_ETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
-const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
-const isNativeEth = (address: string) => address.toLowerCase() === NATIVE_ETH.toLowerCase();
+const isNativeEth = (address: string) => address.toLowerCase() === FLUID_NATIVE_ETH.toLowerCase();
 
 type VaultEntireData = {
     vault: string;
@@ -56,7 +53,7 @@ const tokenMeta = (address: string): Promise<TokenMeta> => {
 
 const priceCache = new Map<string, Promise<number>>();
 const priceUsd = (address: string): Promise<number> => {
-    const lookup = isNativeEth(address) ? WETH : address;
+    const lookup = isNativeEth(address) ? WETH_ADDRESS : address;
     let p = priceCache.get(lookup);
     if (!p) {
         p = withRetry(() => aaveV3Oracle.getAssetPrice(lookup))
@@ -108,8 +105,12 @@ const buildMarkets = async (): Promise<PairMarket[]> => {
             id: v.vault,
             supplySymbol: supplyMeta.symbol,
             supplyAddress: supplyToken,
+            supplyDecimals: supplyMeta.decimals,
+            supplyPriceUsd: supplyPrice,
             borrowSymbol: borrowMeta.symbol,
             borrowAddress: borrowToken,
+            borrowDecimals: borrowMeta.decimals,
+            borrowPriceUsd: borrowPrice,
             maxLtv: Number(v.configs.collateralFactor) / 10000,
             supplyApr: Number(v.exchangePricesAndRates.supplyRateVault) / 10000,
             borrowApr: Number(v.exchangePricesAndRates.borrowRateVault) / 10000,

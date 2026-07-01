@@ -18,14 +18,15 @@ type MorphoMarket = {
     collateralAsset: MorphoAsset | null;
     state: MorphoMarketState | null;
 };
+// the API's BigInt scalar serializes as a JSON number when it fits a safe JS integer, a string otherwise
 type MorphoPositionState = {
-    supplyShares: string;
-    supplyAssets: string;
+    supplyShares: string | number;
+    supplyAssets: string | number;
     supplyAssetsUsd: number | null;
-    borrowShares: string;
-    borrowAssets: string;
+    borrowShares: string | number;
+    borrowAssets: string | number;
     borrowAssetsUsd: number | null;
-    collateral: string;
+    collateral: string | number;
     collateralUsd: number | null;
 };
 type MorphoMarketPosition = { market: MorphoMarket; state: MorphoPositionState | null; healthFactor: number | null };
@@ -96,8 +97,12 @@ const toMarket = (m: MorphoMarket): PairMarket | null => {
         id: m.marketId,
         supplySymbol: m.collateralAsset.symbol,
         supplyAddress: m.collateralAsset.address,
+        supplyDecimals: m.collateralAsset.decimals,
+        supplyPriceUsd: m.collateralAsset.priceUsd ?? 0,
         borrowSymbol: m.loanAsset.symbol,
         borrowAddress: m.loanAsset.address,
+        borrowDecimals: m.loanAsset.decimals,
+        borrowPriceUsd: m.loanAsset.priceUsd ?? 0,
         maxLtv: Number(m.lltv) / 1e18,
         supplyApr: m.state.supplyApy ?? 0,
         borrowApr: m.state.borrowApy ?? 0,
@@ -182,9 +187,10 @@ const loadSummary = async (address: string): Promise<PlatformSummary> => {
                 debtUsd,
                 maxLtv: hasCollateral ? Number(market.lltv) / 1e18 : 0,
                 healthFactor: debtUsd > 0 ? p.healthFactor : null,
-                collateralRaw: state.collateral,
-                borrowSharesRaw: state.borrowShares,
-                supplySharesRaw: state.supplyShares
+                // the API's BigInt scalar serializes as a JSON number when small enough to fit safely, string otherwise; normalize so BigInt() reconstruction is exact either way
+                collateralRaw: String(state.collateral),
+                borrowSharesRaw: String(state.borrowShares),
+                supplySharesRaw: String(state.supplyShares)
             };
         })
         .filter((p) => p.suppliedUsd > 0 || p.debtUsd > 0);

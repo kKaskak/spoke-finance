@@ -11,6 +11,9 @@ export const MORPHO_BLUE_ADDRESS = '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb';
 export const MORPHO_API_URL = 'https://api.morpho.org/graphql';
 
 export const FLUID_VAULT_RESOLVER_ADDRESS = '0xA5C3E16523eeeDDcC34706b0E6bE88b4c6EA95cC';
+// Fluid represents native ETH with this sentinel address rather than WETH; it has no contract code
+export const FLUID_NATIVE_ETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+export const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
 
 export const WAD = 1e18;
 export const RAY = 1e27;
