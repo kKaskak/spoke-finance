@@ -3,6 +3,7 @@ import {
     AAVE_V3_DATA_PROVIDER_ADDRESS,
     AAVE_V3_ORACLE_ADDRESS,
     AAVE_V3_POOL_ADDRESS,
+    CHAIN_ID,
     FLUID_VAULT_RESOLVER_ADDRESS,
     ORACLE_ADDRESS,
     SPOKE_ADDRESS
@@ -24,10 +25,12 @@ try { process.loadEnvFile?.(); } catch { /* no .env file (Cloudflare/CI) */ }
 const rpc = process.env.ALCHEMY_RPC_URL;
 if (!rpc) throw new Error('ALCHEMY_RPC_URL missing in .env');
 
-export const provider = new ethers.JsonRpcProvider(rpc);
+export const provider = new ethers.JsonRpcProvider(rpc, CHAIN_ID, { staticNetwork: true });
 export const spoke = new ethers.Contract(SPOKE_ADDRESS, SPOKE_READ_ABI, provider);
 export const oracle = new ethers.Contract(ORACLE_ADDRESS, ORACLE_ABI, provider);
 
+export const hubIface = new ethers.Interface(HUB_ABI);
+export const erc20Iface = new ethers.Interface(ERC20_ABI);
 export const hubContract = (address: string) => new ethers.Contract(address, HUB_ABI, provider);
 export const erc20 = (address: string) => new ethers.Contract(address, ERC20_ABI, provider);
 

@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 import { PRICE_DECIMALS, RAY, SPOKE_ADDRESS, VALUE_SCALE } from '../shared/constants';
 import type { AccountSummary, PositionResponse, Reserve, ReserveWithUser } from '../shared/types';
-import { erc20, hubContract, oracle, spoke } from './chain';
-import { mapLimit, withRetry } from './util';
+import { erc20Iface, hubIface, oracle, spoke } from './chain';
+import { decodeSymbol, multicall } from './multicall';
+import { withRetry } from './util';
 
 type RawReserve = {
     id: number;
@@ -31,14 +32,31 @@ const loadRawReserves = async (): Promise<RawReserve[]> => {
     if (rawCache && Date.now() - rawCache.at < 60_000) return rawCache.data;
     const count = Number(await spoke.getReserveCount());
     const ids = Array.from({ length: count }, (_, i) => i);
-    const data = await mapLimit(ids, 4, async (id) => {
-        const r = await spoke.getReserve(id);
-        const cfg = await spoke.getReserveConfig(id);
-        const dyn = await spoke.getDynamicReserveConfig(id, r.dynamicConfigKey);
-        const symbol = await erc20(r.underlying).symbol();
+
+    const round1 = (await multicall(
+        ids.flatMap((id) => [
+            { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getReserve', args: [id] },
+            { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getReserveConfig', args: [id] }
+        ])
+    )) as any[];
+
+    const round2 = (await multicall(
+        ids.flatMap((_, i) => {
+            const r = round1[i * 2];
+            return [
+                { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getDynamicReserveConfig', args: [ids[i], r.dynamicConfigKey] },
+                { target: r.underlying as string, iface: erc20Iface, method: 'symbol', decode: (d: string) => decodeSymbol(d, (r.underlying as string).slice(0, 6)) }
+            ];
+        })
+    )) as any[];
+
+    const data = ids.map((id, i) => {
+        const r = round1[i * 2];
+        const cfg = round1[i * 2 + 1];
+        const dyn = round2[i * 2];
         return {
             id,
-            symbol,
+            symbol: round2[i * 2 + 1] as string,
             underlying: r.underlying as string,
             hub: r.hub as string,
             assetId: Number(r.assetId),
@@ -69,10 +87,17 @@ export const getReserves = async (): Promise<Reserve[]> => {
 const loadReserves = async (): Promise<Reserve[]> => {
     const raw = await loadRawReserves();
     const prices: bigint[] = await withRetry(() => oracle.getReservesPrices(raw.map((r) => r.id)));
-    const data = await mapLimit(raw, 3, async (r, i) => {
-        const supplied = await spoke.getReserveSuppliedAssets(r.id);
-        const debt = await spoke.getReserveTotalDebt(r.id);
-        const rate: bigint = await hubContract(r.hub).getAssetDrawnRate(r.assetId);
+    const res = (await multicall(
+        raw.flatMap((r) => [
+            { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getReserveSuppliedAssets', args: [r.id] },
+            { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getReserveTotalDebt', args: [r.id] },
+            { target: r.hub, iface: hubIface, method: 'getAssetDrawnRate', args: [r.assetId] }
+        ])
+    )) as (bigint | null)[];
+    const data = raw.map((r, i) => {
+        const supplied = res[i * 3] ?? 0n;
+        const debt = res[i * 3 + 1] ?? 0n;
+        const rate = res[i * 3 + 2] ?? 0n;
         const priceUsd = Number(prices[i]) / 10 ** PRICE_DECIMALS;
         const totalSupplied = num(supplied, r.decimals);
         const totalDebt = num(debt, r.decimals);
@@ -127,29 +152,32 @@ const loadPosition = async (address: string): Promise<PositionResponse> => {
     const avgCollateralFactor = Number(acc.avgCollateralFactor) / 1e18;
     const borrowPowerUsd = collateralUsd * avgCollateralFactor;
 
-    const merged: ReserveWithUser[] = await mapLimit(reserves, 3, async (reserve) => {
-        const token = erc20(reserve.underlying);
-        const [suppliedRaw, debtRaw, status, balanceRaw, allowanceRaw] = await Promise.all([
-            spoke.getUserSuppliedAssets(reserve.id, address),
-            spoke.getUserTotalDebt(reserve.id, address),
-            spoke.getUserReserveStatus(reserve.id, address),
-            token.balanceOf(address),
-            token.allowance(address, SPOKE_ADDRESS)
-        ]);
-        const supplied = num(suppliedRaw, reserve.decimals);
-        const debt = num(debtRaw, reserve.decimals);
-        const walletBalance = num(balanceRaw, reserve.decimals);
+    const res = (await multicall(
+        reserves.flatMap((reserve) => [
+            { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getUserSuppliedAssets', args: [reserve.id, address] },
+            { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getUserTotalDebt', args: [reserve.id, address] },
+            { target: SPOKE_ADDRESS, iface: spoke.interface, method: 'getUserReserveStatus', args: [reserve.id, address] },
+            { target: reserve.underlying, iface: erc20Iface, method: 'balanceOf', args: [address] },
+            { target: reserve.underlying, iface: erc20Iface, method: 'allowance', args: [address, SPOKE_ADDRESS] }
+        ])
+    )) as any[];
+    const merged: ReserveWithUser[] = reserves.map((reserve, i) => {
+        const base = i * 5;
+        const supplied = num((res[base] as bigint) ?? 0n, reserve.decimals);
+        const debt = num((res[base + 1] as bigint) ?? 0n, reserve.decimals);
+        const status = res[base + 2];
+        const walletBalance = num((res[base + 3] as bigint) ?? 0n, reserve.decimals);
         return {
             ...reserve,
             supplied,
             suppliedUsd: supplied * reserve.priceUsd,
             debt,
             debtUsd: debt * reserve.priceUsd,
-            isCollateral: status.isCollateral,
-            isBorrowed: status.isBorrowed,
+            isCollateral: status?.isCollateral ?? false,
+            isBorrowed: status?.isBorrowed ?? false,
             walletBalance,
             walletBalanceUsd: walletBalance * reserve.priceUsd,
-            allowance: num(allowanceRaw, reserve.decimals)
+            allowance: num((res[base + 4] as bigint) ?? 0n, reserve.decimals)
         };
     });
 

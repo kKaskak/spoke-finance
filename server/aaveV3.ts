@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 import { PRICE_DECIMALS } from '../shared/constants';
 import type { AccountSummary, PositionResponse, Reserve, ReserveWithUser } from '../shared/types';
-import { aaveV3DataProvider, aaveV3Oracle, aaveV3Pool, erc20, provider } from './chain';
-import { mapLimit, resilientSymbol, withRetry } from './util';
+import { aaveV3DataProvider, aaveV3Oracle, aaveV3Pool, erc20Iface } from './chain';
+import { decodeSymbol, multicall } from './multicall';
+import { withRetry } from './util';
 
 type RawReserve = {
     id: number;
@@ -29,14 +30,21 @@ const positionInflight = new Map<string, Promise<PositionResponse>>();
 const loadRawReserves = async (): Promise<RawReserve[]> => {
     if (rawCache && Date.now() - rawCache.at < 60_000) return rawCache.data;
     const list: string[] = await withRetry(() => aaveV3Pool.getReservesList());
-    const data = await mapLimit(list, 4, async (underlying, id) => {
-        const cfg = await aaveV3DataProvider.getReserveConfigurationData(underlying);
+    const dp = aaveV3DataProvider.target as string;
+    const res = (await multicall(
+        list.flatMap((underlying) => [
+            { target: dp, iface: aaveV3DataProvider.interface, method: 'getReserveConfigurationData', args: [underlying] },
+            { target: dp, iface: aaveV3DataProvider.interface, method: 'getPaused', args: [underlying] },
+            { target: underlying, iface: erc20Iface, method: 'symbol', decode: (d: string) => decodeSymbol(d, underlying.slice(0, 6)) }
+        ])
+    )) as any[];
+    const data = list.map((underlying, id) => {
+        const cfg = res[id * 3];
         const isActive = cfg.isActive as boolean;
-        const paused: boolean = await aaveV3DataProvider.getPaused(underlying);
-        const symbol = await resilientSymbol(provider, underlying);
+        const paused = (res[id * 3 + 1] as boolean) ?? false;
         return {
             id,
-            symbol,
+            symbol: res[id * 3 + 2] as string,
             underlying,
             decimals: Number(cfg.decimals),
             ltvBps: Number(cfg.ltv),
@@ -65,20 +73,22 @@ export const getReserves = async (): Promise<Reserve[]> => {
 
 const loadReserves = async (): Promise<Reserve[]> => {
     const raw = await loadRawReserves();
-    const data = await mapLimit(raw, 3, async (r) => {
-        const [reserveData, priceRaw]: [
-            { totalAToken: bigint; totalVariableDebt: bigint; liquidityRate: bigint; variableBorrowRate: bigint },
-            bigint
-        ] = await Promise.all([
-            withRetry(() => aaveV3DataProvider.getReserveData(r.underlying)),
-            withRetry(() => aaveV3Oracle.getAssetPrice(r.underlying))
-        ]);
-        const priceUsd = Number(priceRaw) / 10 ** PRICE_DECIMALS;
-        const totalSupplied = num(reserveData.totalAToken, r.decimals);
-        const totalDebt = num(reserveData.totalVariableDebt, r.decimals);
+    const dp = aaveV3DataProvider.target as string;
+    const oracleAddr = aaveV3Oracle.target as string;
+    const res = (await multicall(
+        raw.flatMap((r) => [
+            { target: dp, iface: aaveV3DataProvider.interface, method: 'getReserveData', args: [r.underlying] },
+            { target: oracleAddr, iface: aaveV3Oracle.interface, method: 'getAssetPrice', args: [r.underlying] }
+        ])
+    )) as any[];
+    const data = raw.map((r, i) => {
+        const reserveData = res[i * 2];
+        const priceUsd = Number((res[i * 2 + 1] as bigint) ?? 0n) / 10 ** PRICE_DECIMALS;
+        const totalSupplied = num(reserveData?.totalAToken ?? 0n, r.decimals);
+        const totalDebt = num(reserveData?.totalVariableDebt ?? 0n, r.decimals);
         const utilization = totalSupplied > 0 ? totalDebt / totalSupplied : 0;
-        const borrowApr = Number(reserveData.variableBorrowRate) / 1e27;
-        const supplyApr = Number(reserveData.liquidityRate) / 1e27;
+        const borrowApr = Number(reserveData?.variableBorrowRate ?? 0n) / 1e27;
+        const supplyApr = Number(reserveData?.liquidityRate ?? 0n) / 1e27;
         return {
             id: r.id,
             symbol: r.symbol,
@@ -128,22 +138,25 @@ const loadPosition = async (address: string): Promise<PositionResponse> => {
     const avgCollateralFactor = Number(acc.ltv) / 10000;
     const maxHf = ethers.MaxUint256;
 
-    const merged: ReserveWithUser[] = await mapLimit(reserves, 3, async (reserve) => {
-        const token = erc20(reserve.underlying);
-        const [userData, balanceRaw] = await Promise.all([
-            aaveV3DataProvider.getUserReserveData(reserve.underlying, address),
-            token.balanceOf(address)
-        ]);
-        const supplied = num(userData.currentATokenBalance, reserve.decimals);
-        const debt = num(userData.currentVariableDebt, reserve.decimals);
-        const walletBalance = num(balanceRaw, reserve.decimals);
+    const dp = aaveV3DataProvider.target as string;
+    const res = (await multicall(
+        reserves.flatMap((reserve) => [
+            { target: dp, iface: aaveV3DataProvider.interface, method: 'getUserReserveData', args: [reserve.underlying, address] },
+            { target: reserve.underlying, iface: erc20Iface, method: 'balanceOf', args: [address] }
+        ])
+    )) as any[];
+    const merged: ReserveWithUser[] = reserves.map((reserve, i) => {
+        const userData = res[i * 2];
+        const supplied = num(userData?.currentATokenBalance ?? 0n, reserve.decimals);
+        const debt = num(userData?.currentVariableDebt ?? 0n, reserve.decimals);
+        const walletBalance = num((res[i * 2 + 1] as bigint) ?? 0n, reserve.decimals);
         return {
             ...reserve,
             supplied,
             suppliedUsd: supplied * reserve.priceUsd,
             debt,
             debtUsd: debt * reserve.priceUsd,
-            isCollateral: userData.usageAsCollateralEnabled as boolean,
+            isCollateral: (userData?.usageAsCollateralEnabled as boolean) ?? false,
             isBorrowed: debt > 0,
             walletBalance,
             walletBalanceUsd: walletBalance * reserve.priceUsd,

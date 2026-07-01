@@ -67,10 +67,14 @@ export const usePlatforms = (): OtherPlatforms => {
             .catch((e) => active && setError(e.message))
             .finally(() => active && setLoading(false));
 
-        const id = setInterval(load, 30_000);
+        const poll = () => { if (!document.hidden) load(); };
+        const id = setInterval(poll, 60_000);
+        const onVisible = () => { if (!document.hidden) load(); };
+        document.addEventListener('visibilitychange', onVisible);
         return () => {
             active = false;
             clearInterval(id);
+            document.removeEventListener('visibilitychange', onVisible);
         };
     }, [address, tick]);
 
