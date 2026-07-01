@@ -1,12 +1,14 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { ActionDrawer } from '@/components/ActionDrawer/ActionDrawer';
 import type { ActionKind } from '@shared/types';
+import { usePlatforms, type OtherPlatforms } from './usePlatforms';
 import { usePortfolio, type Portfolio } from './usePortfolio';
 
 export type ActionTarget = { reserveId: number; kind: ActionKind };
 
 type AppState = {
     portfolio: Portfolio;
+    otherPlatforms: OtherPlatforms;
     openAction: (reserveId: number, kind: ActionKind) => void;
 };
 
@@ -14,11 +16,12 @@ const AppContext = createContext<AppState | null>(null);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
     const portfolio = usePortfolio();
+    const otherPlatforms = usePlatforms();
     const [target, setTarget] = useState<ActionTarget | null>(null);
 
     const value = useMemo<AppState>(
-        () => ({ portfolio, openAction: (reserveId, kind) => setTarget({ reserveId, kind }) }),
-        [portfolio]
+        () => ({ portfolio, otherPlatforms, openAction: (reserveId, kind) => setTarget({ reserveId, kind }) }),
+        [portfolio, otherPlatforms]
     );
 
     return (

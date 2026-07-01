@@ -3,7 +3,7 @@ import type { AccountSummary, Reserve, ReserveWithUser } from '@shared/types';
 import { fetchPosition, fetchReserves } from './api';
 import { useWallet } from './wallet';
 
-const zeroUser = (r: Reserve): ReserveWithUser => ({
+export const zeroUser = (r: Reserve): ReserveWithUser => ({
     ...r,
     supplied: 0,
     suppliedUsd: 0,
