@@ -12,6 +12,7 @@ import type { ReserveWithUser } from '@shared/types';
 import { AllocationDonut, type Slice } from './components/AllocationDonut';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
 import { HealthGauge } from './components/HealthGauge';
+import { LoopSimulator } from './components/LoopSimulator';
 import { BorrowRow, SupplyRow } from './components/PositionList';
 import styles from './Dashboard.module.scss';
 
@@ -158,6 +159,14 @@ export const Dashboard = () => {
                     </div>
                 </div>
             </Reveal>
+
+            {account.collateralUsd > 0 && (
+                <Reveal delay={0.18}>
+                    <Card title="Leverage simulator · loop vs hold">
+                        <LoopSimulator account={account} reserves={reserves} />
+                    </Card>
+                </Reveal>
+            )}
 
             <Reveal delay={0.18}>
                 <Card title="Your supplies">

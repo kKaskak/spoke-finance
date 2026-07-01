@@ -44,6 +44,30 @@ export const projectAction = (
     };
 };
 
+export type LoopModel = {
+    leverage: number;
+    debtUsd: number;
+    interestUsd: number;
+};
+
+export const loopModel = (
+    equityUsd: number,
+    collateralFactor: number,
+    targetHf: number,
+    borrowApr: number,
+    years: number
+): LoopModel => {
+    const safeHf = Math.max(targetHf, collateralFactor + 0.05);
+    const leverage = 1 / (1 - collateralFactor / safeHf);
+    const debtUsd = equityUsd * (leverage - 1);
+    return { leverage, debtUsd, interestUsd: debtUsd * borrowApr * years };
+};
+
+export const holdNetWorth = (equityUsd: number, m: number): number => equityUsd * m;
+
+export const loopNetWorth = (equityUsd: number, model: LoopModel, m: number): number =>
+    equityUsd * (1 + model.leverage * (m - 1)) - model.interestUsd;
+
 export const maxAmount = (account: AccountSummary, reserve: ReserveWithUser, kind: ActionKind): number => {
     const price = reserve.priceUsd || 1;
     if (kind === 'supply') return reserve.walletBalance;
