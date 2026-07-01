@@ -31,6 +31,10 @@
     letter-spacing: -0.01em;
 }
 
+.tabsWrap {
+    align-self: center;
+}
+
 .stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -50,6 +54,11 @@
     display: flex;
     flex-direction: column;
     gap: var(--s-4);
+}
+
+.sectionHead {
+    @include between;
+    padding-right: var(--s-1);
 }
 
 .sectionTitle {
@@ -84,6 +93,35 @@
 
 .headEnd {
     text-align: right;
+}
+
+.toggleLink {
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+
+    &:hover {
+        background: var(--surface-hover);
+        color: var(--text);
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25);
+    }
+}
+
+.mutedPad {
+    padding: var(--s-6) var(--s-5);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 14px;
 }
 
 .center {

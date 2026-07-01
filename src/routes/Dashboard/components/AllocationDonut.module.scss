@@ -18,6 +18,7 @@
 .center {
     position: absolute;
     inset: 0;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -52,6 +53,7 @@
 .row {
     @include row;
     gap: var(--s-3);
+    min-width: 0;
 }
 
 .swatch {
@@ -61,26 +63,57 @@
     flex-shrink: 0;
 }
 
+.assetInfo {
+    @include row;
+    gap: var(--s-2);
+    flex: 1;
+    min-width: 0;
+}
+
 .sym {
     font-size: 14px;
     font-weight: 600;
     color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.platformTag {
+    @include row;
+    gap: 4px;
+    padding: 2px 5px;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.values {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .usd {
     @include tnum;
-    margin-left: auto;
     font-size: 14px;
     font-weight: 600;
     color: var(--text);
+    white-space: nowrap;
 }
 
 .pct {
     @include tnum;
-    width: 52px;
-    text-align: right;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
+    white-space: nowrap;
 }
 
 .empty {

@@ -3,6 +3,18 @@ export const CHAIN_ID = 1;
 export const SPOKE_ADDRESS = '0x973a023A77420ba610f06b3858aD991Df6d85A08';
 export const ORACLE_ADDRESS = '0xdA1266a7b8620819dAE3F8bd6B546Da36e505bB8';
 
+export const AAVE_V3_POOL_ADDRESS = '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
+export const AAVE_V3_DATA_PROVIDER_ADDRESS = '0x0a16f2FCC0D44FaE41cc54e079281D84A363bECD';
+export const AAVE_V3_ORACLE_ADDRESS = '0x54586bE62E3c3580375aE3723C145253060Ca0C2';
+
+export const MORPHO_BLUE_ADDRESS = '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb';
+export const MORPHO_API_URL = 'https://api.morpho.org/graphql';
+
+export const FLUID_VAULT_RESOLVER_ADDRESS = '0xA5C3E16523eeeDDcC34706b0E6bE88b4c6EA95cC';
+// Fluid represents native ETH with this sentinel address rather than WETH; it has no contract code
+export const FLUID_NATIVE_ETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+export const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+
 export const WAD = 1e18;
 export const RAY = 1e27;
 export const VALUE_SCALE = 1e26;

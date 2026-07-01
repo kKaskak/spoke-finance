@@ -1,4 +1,4 @@
-import type { PositionResponse, Reserve } from '@shared/types';
+import type { OtherMarketsResponse, OtherPositionsResponse, PositionResponse, Reserve } from '@shared/types';
 
 const get = async <T>(path: string): Promise<T> => {
     const res = await fetch(path);
@@ -11,3 +11,5 @@ const get = async <T>(path: string): Promise<T> => {
 
 export const fetchReserves = () => get<Reserve[]>('/api/reserves');
 export const fetchPosition = (address: string) => get<PositionResponse>(`/api/position/${address}`);
+export const fetchOtherMarkets = () => get<OtherMarketsResponse>('/api/other-markets');
+export const fetchOtherPositions = (address: string) => get<OtherPositionsResponse>(`/api/other-positions/${address}`);

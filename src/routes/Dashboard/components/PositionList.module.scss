@@ -32,6 +32,31 @@
     color: var(--text);
 }
 
+.assetStack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.assetTotal {
+    @include tnum;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.platformTag {
+    @include row;
+    gap: 5px;
+    padding: 2px var(--s-2) 2px 4px;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .amount {
     display: flex;
     flex-direction: column;
@@ -51,11 +76,61 @@
     color: var(--text-secondary);
 }
 
+.breakdown {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.breakdownRow {
+    @include row;
+    gap: var(--s-2);
+    padding: var(--s-2) 0;
+    border-bottom: 1px solid var(--border);
+
+    &:first-child {
+        padding-top: 0;
+    }
+
+    &:last-child {
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+}
+
+.breakdownPlatform {
+    width: 84px;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breakdownRow .amountMain {
+    width: 110px;
+    flex-shrink: 0;
+    margin-left: auto;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .apr {
     @include tnum;
     margin-left: auto;
     font-size: 15px;
     font-weight: 600;
+}
+
+.breakdownRow .apr {
+    margin-left: 0;
+    width: 60px;
+    text-align: right;
+    font-size: 13px;
 }
 
 .aprSupply {
@@ -81,9 +156,68 @@
     color: var(--text-tertiary);
 }
 
+.health {
+    @include row;
+}
+
+// for multi-provider rows, the breakdown block is taller than this element; anchor it to the first
+// breakdown line instead of the whole block's center so it doesn't visually drift
+.topAlign {
+    align-self: flex-start;
+    margin-top: 6px;
+}
+
 .actions {
     @include row;
     gap: var(--s-2);
+    position: relative;
+}
+
+.pickerBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+}
+
+.picker {
+    position: fixed;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    padding: var(--s-2);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+}
+
+.pickerRow {
+    @include row;
+    @include clickable;
+    gap: var(--s-3);
+    padding: var(--s-3);
+    border: none;
+    border-radius: var(--r-sm);
+    background: transparent;
+    text-align: left;
+
+    &:hover {
+        background: var(--surface-sub);
+    }
+}
+
+.pickerPlatform {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.pickerAmount {
+    @include tnum;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .switch {

@@ -53,3 +53,68 @@ export type PositionResponse = {
 };
 
 export type ActionKind = 'supply' | 'withdraw' | 'borrow' | 'repay';
+
+export type Platform = 'aave-v3' | 'morpho' | 'fluid';
+
+export type PairMarket = {
+    id: string;
+    supplySymbol: string;
+    supplyAddress: string;
+    supplyDecimals: number;
+    supplyPriceUsd: number;
+    borrowSymbol: string;
+    borrowAddress: string;
+    borrowDecimals: number;
+    borrowPriceUsd: number;
+    maxLtv: number;
+    supplyApr: number;
+    borrowApr: number;
+    utilization: number;
+    totalSuppliedUsd: number;
+    totalDebtUsd: number;
+    // Morpho-only: exact on-chain params needed to reconstruct the MarketParams tuple for writes
+    oracleAddress?: string;
+    irmAddress?: string;
+    lltvRaw?: string;
+};
+
+export type PairPosition = {
+    id: string;
+    marketId: string;
+    supplySymbol: string;
+    supplyAddress: string;
+    borrowSymbol: string;
+    borrowAddress: string;
+    supplied: number;
+    suppliedUsd: number;
+    debt: number;
+    debtUsd: number;
+    maxLtv: number;
+    healthFactor: number | null;
+    // Morpho-only: exact raw values for dust-safe "max" withdraw/repay
+    collateralRaw?: string;
+    borrowSharesRaw?: string;
+    supplySharesRaw?: string;
+};
+
+export type PlatformSummary = {
+    platform: Platform;
+    label: string;
+    collateralUsd: number;
+    debtUsd: number;
+    healthFactor: number | null;
+    markets: PairMarket[];
+    positions: PairPosition[];
+};
+
+export type OtherMarketsResponse = {
+    aaveV3: Reserve[] | null;
+    morpho: PairMarket[] | null;
+    fluid: PairMarket[] | null;
+};
+
+export type OtherPositionsResponse = {
+    aaveV3: PositionResponse | null;
+    morpho: PlatformSummary | null;
+    fluid: PlatformSummary | null;
+};

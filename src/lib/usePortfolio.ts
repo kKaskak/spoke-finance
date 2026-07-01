@@ -3,7 +3,7 @@ import type { AccountSummary, Reserve, ReserveWithUser } from '@shared/types';
 import { fetchPosition, fetchReserves } from './api';
 import { useWallet } from './wallet';
 
-const zeroUser = (r: Reserve): ReserveWithUser => ({
+export const zeroUser = (r: Reserve): ReserveWithUser => ({
     ...r,
     supplied: 0,
     suppliedUsd: 0,
@@ -58,10 +58,15 @@ export const usePortfolio = (): Portfolio => {
             .catch((e) => active && setError(e.message))
             .finally(() => active && setLoading(false));
 
-        const id = setInterval(load, 30_000);
+        const poll = () => {
+            if (!document.hidden) load().catch((e) => active && setError(e.message));
+        };
+        const id = setInterval(poll, 60_000);
+        document.addEventListener('visibilitychange', poll);
         return () => {
             active = false;
             clearInterval(id);
+            document.removeEventListener('visibilitychange', poll);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address, tick]);

@@ -1,28 +1,24 @@
 import { useCallback, useMemo, useState } from 'react';
-import { AnimatedTabs } from '@/components/AnimatedTabs/AnimatedTabs';
 import { Card } from '@/components/Card/Card';
 import { StatTile } from '@/components/StatTile/StatTile';
 import { useApp } from '@/lib/app';
 import { fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
-import { PLATFORM_LABEL, type PlatformKey } from '@/lib/platform';
 import { isNoisyPool } from '@/lib/poolFilter';
 import { useWallet } from '@/lib/wallet';
-import type { ActionKind } from '@shared/types';
-import { AaveV3Markets } from './components/AaveV3Markets';
-import { MarketTable } from './components/MarketTable';
-import { MarketsBarChart } from './components/MarketsBarChart';
-import { MarketsSkeleton } from './components/MarketsSkeleton';
-import { PairMarkets } from './components/PairMarkets';
-import styles from './Markets.module.scss';
+import type { ActionKind, ReserveWithUser } from '@shared/types';
+import { MarketTable } from './MarketTable';
+import { MarketsBarChart } from './MarketsBarChart';
+import { MarketsSkeleton } from './MarketsSkeleton';
+import styles from '../Markets.module.scss';
+
+const usdC = (n: number) => fmtUsd(n, true);
+const countC = (n: number) => Math.round(n).toString();
 
 const COLLATERAL_COLS = '1.4fr 0.8fr 1.1fr 1fr 1fr 1.4fr';
 const COLLATERAL_COLS_GUEST = '1.6fr 1fr 1.3fr 1.6fr';
 const BORROW_COLS = '1.4fr 0.9fr 0.9fr 1.2fr 1.1fr 1fr 1.6fr';
 const BORROW_COLS_GUEST = '1.5fr 1fr 1fr 1.3fr 1.2fr 1.6fr';
-
-const usdC = (n: number) => fmtUsd(n, true);
-const countC = (n: number) => Math.round(n).toString();
 
 const collateralHeaders = (connected: boolean): string[] =>
     connected
@@ -34,61 +30,37 @@ const borrowHeaders = (connected: boolean): string[] =>
         ? ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available', 'Your debt', '']
         : ['Asset', 'Borrow APR', 'Supply APR', 'Utilization', 'Available', ''];
 
-const TABS: PlatformKey[] = ['aave-v4', 'aave-v3', 'morpho', 'fluid'];
-
-export const Markets = () => {
-    const { otherPlatforms } = useApp();
-    const [tab, setTab] = useState<PlatformKey>('aave-v4');
-
-    return (
-        <div className={styles.page}>
-            <Reveal>
-                <header className={styles.head}>
-                    <h1 className={styles.title}>Markets</h1>
-                    <p className={styles.subtitle}>
-                        Supply collateral and borrow across Aave v4, Aave v3, Morpho and Fluid.
-                    </p>
-                </header>
-            </Reveal>
-
-            <Reveal delay={0.04} className={styles.tabsWrap}>
-                <AnimatedTabs
-                    tabs={TABS.map((t) => ({ value: t, label: PLATFORM_LABEL[t] }))}
-                    active={tab}
-                    onChange={setTab}
-                    layoutId="marketsTab"
-                />
-            </Reveal>
-
-            {tab === 'aave-v4' && <AaveV4Markets />}
-            {tab === 'aave-v3' && <AaveV3Markets reserves={otherPlatforms.aaveV3Reserves} loading={otherPlatforms.loading} />}
-            {tab === 'morpho' && <PairMarkets platform="morpho" markets={otherPlatforms.morpho.markets} loading={otherPlatforms.loading} />}
-            {tab === 'fluid' && <PairMarkets platform="fluid" markets={otherPlatforms.fluid.markets} loading={otherPlatforms.loading} />}
-        </div>
-    );
+type Props = {
+    reserves: ReserveWithUser[];
+    loading: boolean;
 };
 
-const AaveV4Markets = () => {
+export const AaveV3Markets = ({ reserves, loading }: Props) => {
     const { portfolio, openAction } = useApp();
     const { connect } = useWallet();
-    const { reserves, connected, loading, error } = portfolio;
+    const connected = portfolio.connected;
 
     const onAct = useCallback(
         (id: number, kind: ActionKind) => {
-            if (connected) openAction('aave-v4', id, kind);
+            if (connected) openAction('aave-v3', id, kind);
             else void connect();
         },
         [connected, openAction, connect]
     );
 
-    const [showAllBorrow, setShowAllBorrow] = useState(false);
+    const [showAll, setShowAll] = useState(false);
+    const onToggleShowAll = useCallback(() => setShowAll((v) => !v), []);
 
     const collateral = useMemo(() => reserves.filter((r) => r.canBeCollateral), [reserves]);
     const borrowAll = useMemo(() => reserves.filter((r) => r.borrowable), [reserves]);
-    const hiddenBorrowCount = useMemo(() => borrowAll.filter((r) => isNoisyPool(r.utilization)).length, [borrowAll]);
+    const hiddenCount = useMemo(() => reserves.filter((r) => isNoisyPool(r.utilization)).length, [reserves]);
+    const chartReserves = useMemo(
+        () => (showAll ? reserves : reserves.filter((r) => !isNoisyPool(r.utilization))),
+        [reserves, showAll]
+    );
     const borrow = useMemo(
-        () => (showAllBorrow ? borrowAll : borrowAll.filter((r) => !isNoisyPool(r.utilization))),
-        [borrowAll, showAllBorrow]
+        () => (showAll ? borrowAll : borrowAll.filter((r) => !isNoisyPool(r.utilization))),
+        [borrowAll, showAll]
     );
 
     const stats = useMemo(() => {
@@ -101,25 +73,12 @@ const AaveV4Markets = () => {
         return <MarketsSkeleton />;
     }
 
-    if (error && reserves.length === 0) {
-        return (
-            <div className={styles.center}>
-                <Card title="Unable to load markets">
-                    <p className={styles.error}>{error}</p>
-                </Card>
-            </div>
-        );
-    }
-
     return (
         <>
             <Reveal delay={0.05}>
                 <div className={styles.stats}>
                     <StatTile label="Total market size" value={<AnimatedNumber value={stats.size} format={usdC} />} />
-                    <StatTile
-                        label="Total borrowed"
-                        value={<AnimatedNumber value={stats.borrowed} format={usdC} />}
-                    />
+                    <StatTile label="Total borrowed" value={<AnimatedNumber value={stats.borrowed} format={usdC} />} />
                     <StatTile
                         label="Available liquidity"
                         value={<AnimatedNumber value={stats.liquidity} format={usdC} />}
@@ -130,8 +89,17 @@ const AaveV4Markets = () => {
             </Reveal>
 
             <Reveal delay={0.1}>
-                <Card title="Markets by size">
-                    <MarketsBarChart reserves={reserves} />
+                <Card
+                    title="Markets by size"
+                    action={
+                        hiddenCount > 0 && (
+                            <button type="button" className={styles.toggleLink} onClick={onToggleShowAll}>
+                                {showAll ? 'Hide full & idle pools' : `Show ${hiddenCount} full & idle pool${hiddenCount === 1 ? '' : 's'}`}
+                            </button>
+                        )
+                    }
+                >
+                    <MarketsBarChart reserves={chartReserves} />
                 </Card>
             </Reveal>
 
@@ -158,11 +126,6 @@ const AaveV4Markets = () => {
                     <section className={styles.section}>
                         <div className={styles.sectionHead}>
                             <h2 className={styles.sectionTitle}>Borrow assets</h2>
-                            {hiddenBorrowCount > 0 && (
-                                <button type="button" className={styles.toggleLink} onClick={() => setShowAllBorrow((v) => !v)}>
-                                    {showAllBorrow ? 'Hide full & idle pools' : `Show ${hiddenBorrowCount} full & idle pool${hiddenBorrowCount === 1 ? '' : 's'}`}
-                                </button>
-                            )}
                         </div>
                         <Card pad={false}>
                             {borrow.length === 0 ? (
