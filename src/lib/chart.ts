@@ -11,8 +11,10 @@ export const tooltipStyle = {
     boxShadow: '0 6px 24px rgba(0,0,0,0.08)',
     fontSize: 12,
     color: '#1d1d1f',
-    padding: '6px 10px'
+    padding: '6px 10px',
+    whiteSpace: 'nowrap' as const
 };
 
 export const tooltipLabelStyle = { color: '#86868b', fontWeight: 500, marginBottom: 2 };
 export const tooltipItemStyle = { color: '#1d1d1f' };
+export const tooltipWrapperStyle = { zIndex: 30, pointerEvents: 'none' as const };

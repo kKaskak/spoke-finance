@@ -36,6 +36,7 @@
     gap: 2px;
     padding: 3px;
     width: fit-content;
+    align-self: center;
     border-radius: var(--r-pill);
     background: var(--surface-sub);
 }
@@ -43,14 +44,22 @@
 .tab {
     position: relative;
     padding: 8px 18px;
+    border: none;
     border-radius: var(--r-pill);
+    background: transparent;
     font-size: 14px;
     font-weight: 500;
     color: var(--text-secondary);
+    cursor: pointer;
     transition: color 0.2s var(--ease);
 
     &:hover {
         color: var(--text);
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25);
     }
 }
 
@@ -125,6 +134,35 @@
 
 .headEnd {
     text-align: right;
+}
+
+.toggleLink {
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+
+    &:hover {
+        background: var(--surface-hover);
+        color: var(--text);
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25);
+    }
+}
+
+.mutedPad {
+    padding: var(--s-6) var(--s-5);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 14px;
 }
 
 .center {
