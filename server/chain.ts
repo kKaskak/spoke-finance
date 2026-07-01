@@ -2,7 +2,8 @@ import { ethers } from 'ethers';
 import { ORACLE_ADDRESS, SPOKE_ADDRESS } from '../shared/constants';
 import { ERC20_ABI, HUB_ABI, ORACLE_ABI, SPOKE_READ_ABI } from './abi';
 
-process.loadEnvFile();
+// ponytail: Node-only; no-op on Workers, where nodejs_compat populates process.env
+try { process.loadEnvFile?.(); } catch { /* no .env file (Cloudflare/CI) */ }
 
 const rpc = process.env.ALCHEMY_RPC_URL;
 if (!rpc) throw new Error('ALCHEMY_RPC_URL missing in .env');
