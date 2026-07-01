@@ -102,6 +102,11 @@
     gap: var(--s-4);
 }
 
+.sectionHead {
+    @include between;
+    padding-right: var(--s-1);
+}
+
 .sectionTitle {
     font-size: 24px;
     font-weight: 600;

@@ -3,6 +3,7 @@ import { Card } from '@/components/Card/Card';
 import { StatTile } from '@/components/StatTile/StatTile';
 import { fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
+import { isNoisyPool } from '@/lib/poolFilter';
 import type { PairMarket } from '@shared/types';
 import { MarketsSkeleton } from './MarketsSkeleton';
 import { PairMarketRow } from './PairMarketRow';
@@ -14,9 +15,7 @@ const countC = (n: number) => Math.round(n).toString();
 const COLS = '1.6fr 0.9fr 1.1fr 1.1fr 0.9fr 0.9fr 1.2fr';
 const HEADERS = ['Market', 'Max LTV', 'Total supplied', 'Total borrowed', 'Supply APR', 'Borrow APR', 'Utilization'];
 
-const FULL_THRESHOLD = 0.98;
-const IDLE_THRESHOLD = 0.001;
-const isNoise = (m: PairMarket) => m.utilization >= FULL_THRESHOLD || m.utilization <= IDLE_THRESHOLD;
+const isNoise = (m: PairMarket) => isNoisyPool(m.utilization);
 
 type Props = {
     markets: PairMarket[];

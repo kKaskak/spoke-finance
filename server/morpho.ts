@@ -12,13 +12,17 @@ type MorphoMarketState = {
 type MorphoMarket = {
     marketId: string;
     lltv: string;
+    irmAddress: string;
+    oracle: { address: string };
     loanAsset: MorphoAsset;
     collateralAsset: MorphoAsset | null;
     state: MorphoMarketState | null;
 };
 type MorphoPositionState = {
+    supplyShares: string;
     supplyAssets: string;
     supplyAssetsUsd: number | null;
+    borrowShares: string;
     borrowAssets: string;
     borrowAssetsUsd: number | null;
     collateral: string;
@@ -45,6 +49,8 @@ const MARKETS_QUERY = `
             items {
                 marketId
                 lltv
+                irmAddress
+                oracle { address }
                 loanAsset { address symbol decimals priceUsd }
                 collateralAsset { address symbol decimals priceUsd }
                 state { supplyAssetsUsd borrowAssetsUsd utilization supplyApy borrowApy }
@@ -60,12 +66,16 @@ const POSITIONS_QUERY = `
                 market {
                     marketId
                     lltv
+                    irmAddress
+                    oracle { address }
                     loanAsset { address symbol decimals priceUsd }
                     collateralAsset { address symbol decimals priceUsd }
                 }
                 state {
+                    supplyShares
                     supplyAssets
                     supplyAssetsUsd
+                    borrowShares
                     borrowAssets
                     borrowAssetsUsd
                     collateral
@@ -93,7 +103,10 @@ const toMarket = (m: MorphoMarket): PairMarket | null => {
         borrowApr: m.state.borrowApy ?? 0,
         utilization: m.state.utilization ?? 0,
         totalSuppliedUsd: m.state.supplyAssetsUsd ?? 0,
-        totalDebtUsd: m.state.borrowAssetsUsd ?? 0
+        totalDebtUsd: m.state.borrowAssetsUsd ?? 0,
+        oracleAddress: m.oracle.address,
+        irmAddress: m.irmAddress,
+        lltvRaw: m.lltv
     };
 };
 
@@ -168,7 +181,10 @@ const loadSummary = async (address: string): Promise<PlatformSummary> => {
                 debt,
                 debtUsd,
                 maxLtv: hasCollateral ? Number(market.lltv) / 1e18 : 0,
-                healthFactor: debtUsd > 0 ? p.healthFactor : null
+                healthFactor: debtUsd > 0 ? p.healthFactor : null,
+                collateralRaw: state.collateral,
+                borrowSharesRaw: state.borrowShares,
+                supplySharesRaw: state.supplyShares
             };
         })
         .filter((p) => p.suppliedUsd > 0 || p.debtUsd > 0);

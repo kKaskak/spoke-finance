@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card } from '@/components/Card/Card';
 import { StatTile } from '@/components/StatTile/StatTile';
 import { useApp } from '@/lib/app';
 import { fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
+import { isNoisyPool } from '@/lib/poolFilter';
 import type { ReserveWithUser } from '@shared/types';
 import { MarketTable } from './MarketTable';
 import { MarketsBarChart } from './MarketsBarChart';
@@ -39,8 +40,15 @@ export const AaveV3Markets = ({ reserves, loading }: Props) => {
     const { portfolio } = useApp();
     const connected = portfolio.connected;
 
+    const [showAllBorrow, setShowAllBorrow] = useState(false);
+
     const collateral = useMemo(() => reserves.filter((r) => r.canBeCollateral), [reserves]);
-    const borrow = useMemo(() => reserves.filter((r) => r.borrowable), [reserves]);
+    const borrowAll = useMemo(() => reserves.filter((r) => r.borrowable), [reserves]);
+    const hiddenBorrowCount = useMemo(() => borrowAll.filter((r) => isNoisyPool(r.utilization)).length, [borrowAll]);
+    const borrow = useMemo(
+        () => (showAllBorrow ? borrowAll : borrowAll.filter((r) => !isNoisyPool(r.utilization))),
+        [borrowAll, showAllBorrow]
+    );
 
     const stats = useMemo(() => {
         const size = reserves.reduce((s, r) => s + r.totalSuppliedUsd, 0);
@@ -92,20 +100,31 @@ export const AaveV3Markets = ({ reserves, loading }: Props) => {
                 </Reveal>
             )}
 
-            {borrow.length > 0 && (
+            {borrowAll.length > 0 && (
                 <Reveal delay={0.2}>
                     <section className={styles.section}>
-                        <h2 className={styles.sectionTitle}>Borrow assets</h2>
+                        <div className={styles.sectionHead}>
+                            <h2 className={styles.sectionTitle}>Borrow assets</h2>
+                            {hiddenBorrowCount > 0 && (
+                                <button type="button" className={styles.toggleLink} onClick={() => setShowAllBorrow((v) => !v)}>
+                                    {showAllBorrow ? 'Hide full & idle pools' : `Show ${hiddenBorrowCount} full & idle pool${hiddenBorrowCount === 1 ? '' : 's'}`}
+                                </button>
+                            )}
+                        </div>
                         <Card pad={false}>
-                            <MarketTable
-                                headers={borrowHeaders(connected)}
-                                cols={connected ? BORROW_COLS : BORROW_COLS_GUEST}
-                                reserves={borrow}
-                                variant="borrow"
-                                connected={connected}
-                                onAct={noop}
-                                actions={false}
-                            />
+                            {borrow.length === 0 ? (
+                                <p className={styles.mutedPad}>All markets here are at full utilization or idle.</p>
+                            ) : (
+                                <MarketTable
+                                    headers={borrowHeaders(connected)}
+                                    cols={connected ? BORROW_COLS : BORROW_COLS_GUEST}
+                                    reserves={borrow}
+                                    variant="borrow"
+                                    connected={connected}
+                                    onAct={noop}
+                                    actions={false}
+                                />
+                            )}
                         </Card>
                     </section>
                 </Reveal>

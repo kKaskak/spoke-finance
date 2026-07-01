@@ -68,6 +68,10 @@ export type PairMarket = {
     utilization: number;
     totalSuppliedUsd: number;
     totalDebtUsd: number;
+    // Morpho-only: exact on-chain params needed to reconstruct the MarketParams tuple for writes
+    oracleAddress?: string;
+    irmAddress?: string;
+    lltvRaw?: string;
 };
 
 export type PairPosition = {
@@ -83,6 +87,10 @@ export type PairPosition = {
     debtUsd: number;
     maxLtv: number;
     healthFactor: number | null;
+    // Morpho-only: exact raw values for dust-safe "max" withdraw/repay
+    collateralRaw?: string;
+    borrowSharesRaw?: string;
+    supplySharesRaw?: string;
 };
 
 export type PlatformSummary = {
