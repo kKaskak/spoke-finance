@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Card } from '@/components/Card/Card';
 import { StatTile } from '@/components/StatTile/StatTile';
+import { useApp, type PairPlatform } from '@/lib/app';
 import { fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
 import { isNoisyPool } from '@/lib/poolFilter';
-import type { PairMarket } from '@shared/types';
+import { useWallet } from '@/lib/wallet';
+import type { ActionKind, PairMarket } from '@shared/types';
 import { MarketsSkeleton } from './MarketsSkeleton';
 import { PairMarketRow } from './PairMarketRow';
 import styles from '../Markets.module.scss';
@@ -12,18 +14,30 @@ import styles from '../Markets.module.scss';
 const usdC = (n: number) => fmtUsd(n, true);
 const countC = (n: number) => Math.round(n).toString();
 
-const COLS = '1.6fr 0.9fr 1.1fr 1.1fr 0.9fr 0.9fr 1.2fr';
-const HEADERS = ['Market', 'Max LTV', 'Total supplied', 'Total borrowed', 'Supply APR', 'Borrow APR', 'Utilization'];
+const COLS = '1.6fr 0.8fr 1fr 1fr 0.8fr 0.8fr 1.1fr 1.4fr';
+const HEADERS = ['Market', 'Max LTV', 'Total supplied', 'Total borrowed', 'Supply APR', 'Borrow APR', 'Utilization', ''];
 
 const isNoise = (m: PairMarket) => isNoisyPool(m.utilization);
 
 type Props = {
+    platform: PairPlatform;
     markets: PairMarket[];
     loading: boolean;
 };
 
-export const PairMarkets = ({ markets, loading }: Props) => {
+export const PairMarkets = ({ platform, markets, loading }: Props) => {
+    const { portfolio, openPairAction } = useApp();
+    const { connect } = useWallet();
+    const connected = portfolio.connected;
     const [showAll, setShowAll] = useState(false);
+
+    const onAct = useCallback(
+        (marketId: string, kind: ActionKind) => {
+            if (connected) openPairAction(platform, marketId, kind);
+            else void connect();
+        },
+        [connected, openPairAction, platform, connect]
+    );
 
     const stats = useMemo(() => {
         const size = markets.reduce((s, m) => s + m.totalSuppliedUsd, 0);
@@ -87,7 +101,7 @@ export const PairMarkets = ({ markets, loading }: Props) => {
                                 ))}
                             </div>
                             {visible.map((m) => (
-                                <PairMarketRow key={m.id} market={m} />
+                                <PairMarketRow key={m.id} market={m} onAct={onAct} />
                             ))}
                         </div>
                     )}

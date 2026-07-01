@@ -62,8 +62,8 @@ export const Markets = () => {
 
             {tab === 'aave-v4' && <AaveV4Markets />}
             {tab === 'aave-v3' && <AaveV3Markets reserves={otherPlatforms.aaveV3Reserves} loading={otherPlatforms.loading} />}
-            {tab === 'morpho' && <PairMarkets markets={otherPlatforms.morpho.markets} loading={otherPlatforms.loading} />}
-            {tab === 'fluid' && <PairMarkets markets={otherPlatforms.fluid.markets} loading={otherPlatforms.loading} />}
+            {tab === 'morpho' && <PairMarkets platform="morpho" markets={otherPlatforms.morpho.markets} loading={otherPlatforms.loading} />}
+            {tab === 'fluid' && <PairMarkets platform="fluid" markets={otherPlatforms.fluid.markets} loading={otherPlatforms.loading} />}
         </div>
     );
 };
