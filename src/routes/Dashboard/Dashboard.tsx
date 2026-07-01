@@ -40,6 +40,9 @@ const pairToSlices = (positions: PairPosition[], key: 'suppliedUsd' | 'debtUsd',
             };
         });
 
+const pairAvailableToBorrow = (positions: PairPosition[]): number =>
+    positions.reduce((s, p) => s + Math.max(0, p.suppliedUsd * p.maxLtv - p.debtUsd), 0);
+
 const pairToRows = (positions: PairPosition[], platform: 'morpho' | 'fluid'): OtherRow[] =>
     positions.map((p) => ({
         key: `${platform}:${p.id}`,
@@ -86,16 +89,38 @@ export const Dashboard = () => {
         () =>
             account
                 ? [
-                      { platform: 'aave-v4', label: 'Aave v4', collateralUsd: account.collateralUsd, debtUsd: account.debtUsd, healthFactor: account.healthFactor },
+                      {
+                          platform: 'aave-v4',
+                          label: 'Aave v4',
+                          collateralUsd: account.collateralUsd,
+                          debtUsd: account.debtUsd,
+                          availableBorrowsUsd: account.availableBorrowsUsd,
+                          healthFactor: account.healthFactor
+                      },
                       {
                           platform: 'aave-v3',
                           label: 'Aave v3',
                           collateralUsd: aaveV3Account?.collateralUsd ?? 0,
                           debtUsd: aaveV3Account?.debtUsd ?? 0,
+                          availableBorrowsUsd: aaveV3Account?.availableBorrowsUsd ?? 0,
                           healthFactor: aaveV3Account?.healthFactor ?? null
                       },
-                      { platform: 'morpho', label: 'Morpho', collateralUsd: morpho.collateralUsd, debtUsd: morpho.debtUsd, healthFactor: morpho.healthFactor },
-                      { platform: 'fluid', label: 'Fluid', collateralUsd: fluid.collateralUsd, debtUsd: fluid.debtUsd, healthFactor: fluid.healthFactor }
+                      {
+                          platform: 'morpho',
+                          label: 'Morpho',
+                          collateralUsd: morpho.collateralUsd,
+                          debtUsd: morpho.debtUsd,
+                          availableBorrowsUsd: pairAvailableToBorrow(morpho.positions),
+                          healthFactor: morpho.healthFactor
+                      },
+                      {
+                          platform: 'fluid',
+                          label: 'Fluid',
+                          collateralUsd: fluid.collateralUsd,
+                          debtUsd: fluid.debtUsd,
+                          availableBorrowsUsd: pairAvailableToBorrow(fluid.positions),
+                          healthFactor: fluid.healthFactor
+                      }
                   ]
                 : [],
         [account, aaveV3Account, morpho, fluid]
@@ -236,6 +261,7 @@ export const Dashboard = () => {
                                     <HealthBadge hf={overallHealthFactor} size="lg" />
                                 </span>
                             }
+                            sub="All platforms · worst case"
                         />
                     </div>
                     <div className={styles.statCard}>

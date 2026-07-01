@@ -13,3 +13,10 @@ export const PLATFORM_COLOR: Record<PlatformKey, string> = {
     morpho: '#34c759',
     fluid: '#ff9500'
 };
+
+export const PLATFORM_MARK: Record<PlatformKey, string> = {
+    'aave-v4': '4',
+    'aave-v3': '3',
+    morpho: 'M',
+    fluid: 'F'
+};

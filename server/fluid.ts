@@ -175,6 +175,7 @@ const loadSummary = async (address: string): Promise<PlatformSummary> => {
             suppliedUsd,
             debt,
             debtUsd,
+            maxLtv: Number(vault.configs.collateralFactor) / 10000,
             healthFactor
         };
     });

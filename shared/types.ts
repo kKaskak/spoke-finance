@@ -81,6 +81,7 @@ export type PairPosition = {
     suppliedUsd: number;
     debt: number;
     debtUsd: number;
+    maxLtv: number;
     healthFactor: number | null;
 };
 

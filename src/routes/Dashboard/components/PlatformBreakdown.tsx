@@ -1,6 +1,6 @@
 import { HealthBadge } from '@/components/HealthBadge/HealthBadge';
 import { fmtUsd } from '@/lib/format';
-import { PLATFORM_COLOR, type PlatformKey } from '@/lib/platform';
+import { PLATFORM_COLOR, PLATFORM_MARK, type PlatformKey } from '@/lib/platform';
 import styles from './PlatformBreakdown.module.scss';
 
 export type PlatformRow = {
@@ -8,6 +8,7 @@ export type PlatformRow = {
     label: string;
     collateralUsd: number;
     debtUsd: number;
+    availableBorrowsUsd: number;
     healthFactor: number | null;
 };
 
@@ -20,7 +21,12 @@ export const PlatformBreakdown = ({ rows }: Props) => (
         {rows.map((p) => (
             <div key={p.platform} className={styles.row}>
                 <div className={styles.name}>
-                    <span className={styles.dot} style={{ background: PLATFORM_COLOR[p.platform] }} />
+                    <span
+                        className={styles.badge}
+                        style={{ background: `${PLATFORM_COLOR[p.platform]}1f`, color: PLATFORM_COLOR[p.platform] }}
+                    >
+                        {PLATFORM_MARK[p.platform]}
+                    </span>
                     <span className={styles.label}>{p.label}</span>
                 </div>
                 <div className={styles.stat}>
@@ -30,6 +36,10 @@ export const PlatformBreakdown = ({ rows }: Props) => (
                 <div className={styles.stat}>
                     <span className={styles.statLabel}>Debt</span>
                     <span className={styles.statValue}>{fmtUsd(p.debtUsd, true)}</span>
+                </div>
+                <div className={styles.stat}>
+                    <span className={styles.statLabel}>Available</span>
+                    <span className={styles.statValue}>{fmtUsd(p.availableBorrowsUsd, true)}</span>
                 </div>
                 <div className={styles.health}>
                     <HealthBadge hf={p.healthFactor} size="sm" />

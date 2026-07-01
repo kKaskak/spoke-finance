@@ -167,6 +167,7 @@ const loadSummary = async (address: string): Promise<PlatformSummary> => {
                 suppliedUsd,
                 debt,
                 debtUsd,
+                maxLtv: hasCollateral ? Number(market.lltv) / 1e18 : 0,
                 healthFactor: debtUsd > 0 ? p.healthFactor : null
             };
         })
