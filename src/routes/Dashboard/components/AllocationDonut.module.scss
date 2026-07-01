@@ -80,7 +80,9 @@
 }
 
 .platformTag {
-    padding: 2px var(--s-2);
+    @include row;
+    gap: 5px;
+    padding: 2px var(--s-2) 2px 4px;
     border-radius: var(--r-pill);
     background: var(--surface-sub);
     font-size: 11px;

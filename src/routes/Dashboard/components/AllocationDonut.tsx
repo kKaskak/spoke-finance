@@ -1,4 +1,5 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { PlatformIcon } from '@/components/PlatformIcon/PlatformIcon';
 import { TokenIcon } from '@/components/TokenIcon/TokenIcon';
 import { CHART_COLORS, tooltipItemStyle, tooltipLabelStyle, tooltipStyle, tooltipWrapperStyle } from '@/lib/chart';
 import { fmtPct, fmtUsd } from '@/lib/format';
@@ -72,7 +73,12 @@ export const AllocationDonut = ({ slices, emptyLabel }: Props) => {
                         <TokenIcon symbol={s.symbol} address={s.address} size={20} />
                         <div className={styles.assetInfo}>
                             <span className={styles.sym}>{s.symbol}</span>
-                            {s.platform && <span className={styles.platformTag}>{PLATFORM_LABEL[s.platform]}</span>}
+                            {s.platform && (
+                                <span className={styles.platformTag}>
+                                    <PlatformIcon platform={s.platform} size={14} />
+                                    {PLATFORM_LABEL[s.platform]}
+                                </span>
+                            )}
                         </div>
                         <div className={styles.values}>
                             <span className={styles.usd}>{fmtUsd(s.usd, true)}</span>
