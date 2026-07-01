@@ -252,12 +252,19 @@ const GroupRow = ({ group, account, primaryKind, secondaryKind, aprAccent }: Gro
         <div className={styles.row}>
             <div className={styles.asset}>
                 <TokenIcon symbol={group.symbol} address={group.address} size={32} />
-                <span className={styles.sym}>{group.symbol}</span>
-                {single && (
-                    <span className={styles.platformTag}>
-                        <PlatformIcon platform={single.platform} size={14} />
-                        {PLATFORM_LABEL[single.platform]}
-                    </span>
+                {single ? (
+                    <>
+                        <span className={styles.sym}>{group.symbol}</span>
+                        <span className={styles.platformTag}>
+                            <PlatformIcon platform={single.platform} size={14} />
+                            {PLATFORM_LABEL[single.platform]}
+                        </span>
+                    </>
+                ) : (
+                    <div className={styles.assetStack}>
+                        <span className={styles.sym}>{group.symbol}</span>
+                        <span className={styles.assetTotal}>{fmtUsd(group.totalUsd)}</span>
+                    </div>
                 )}
             </div>
             {single ? (
@@ -278,7 +285,6 @@ const GroupRow = ({ group, account, primaryKind, secondaryKind, aprAccent }: Gro
                             <span className={[styles.apr, styles[aprAccent]].join(' ')}>{fmtPct(e.apr)}</span>
                         </div>
                     ))}
-                    <span className={styles.amountSub}>{fmtUsd(group.totalUsd)}</span>
                 </div>
             )}
             {primaryKind === 'borrow' && worstHf !== undefined && (
