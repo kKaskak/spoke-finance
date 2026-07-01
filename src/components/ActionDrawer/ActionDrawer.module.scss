@@ -69,34 +69,8 @@
     }
 }
 
-.tabs {
-    display: grid;
-    grid-auto-flow: column;
-    gap: 2px;
-    padding: 3px;
-    border-radius: var(--r-pill);
-    background: var(--surface-sub);
+.tabsWrap {
     margin-bottom: var(--s-5);
-}
-
-.tab {
-    @include clickable;
-    padding: 8px 0;
-    border-radius: var(--r-pill);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    background: transparent;
-    border: none;
-    &:hover {
-        color: var(--text);
-    }
-}
-
-.tabActive {
-    background: var(--surface);
-    color: var(--text);
-    box-shadow: var(--shadow-sm);
 }
 
 .inputBlock {
@@ -151,10 +125,54 @@
 }
 
 .slider {
+    --fill: 0%;
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
+    height: 22px;
     margin: var(--s-2) 0;
-    accent-color: var(--accent);
+    background: transparent;
     cursor: pointer;
+    @include focus-ring;
+
+    @mixin track {
+        height: 6px;
+        border-radius: var(--r-pill);
+        background: linear-gradient(to right, var(--accent) var(--fill), var(--border-strong) var(--fill));
+    }
+    @mixin thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+        transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+    }
+
+    &::-webkit-slider-runnable-track {
+        @include track;
+    }
+    &::-moz-range-track {
+        @include track;
+    }
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -7px;
+        @include thumb;
+    }
+    &::-moz-range-thumb {
+        @include thumb;
+    }
+    &:active::-webkit-slider-thumb {
+        transform: scale(1.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+    }
+    &:active::-moz-range-thumb {
+        transform: scale(1.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+    }
 }
 
 .ticks {

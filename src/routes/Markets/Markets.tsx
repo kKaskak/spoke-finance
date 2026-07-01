@@ -1,5 +1,5 @@
-import { motion } from 'motion/react';
 import { useCallback, useMemo, useState } from 'react';
+import { AnimatedTabs } from '@/components/AnimatedTabs/AnimatedTabs';
 import { Card } from '@/components/Card/Card';
 import { StatTile } from '@/components/StatTile/StatTile';
 import { useApp } from '@/lib/app';
@@ -51,23 +51,13 @@ export const Markets = () => {
                 </header>
             </Reveal>
 
-            <Reveal delay={0.04}>
-                <div className={styles.tabs}>
-                    {TABS.map((t) => (
-                        <button key={t} type="button" className={styles.tab} onClick={() => setTab(t)}>
-                            {tab === t && (
-                                <motion.span
-                                    layoutId="marketsTab"
-                                    className={styles.tabBg}
-                                    transition={{ type: 'spring', stiffness: 420, damping: 36 }}
-                                />
-                            )}
-                            <span className={[styles.tabLabel, tab === t ? styles.tabLabelActive : ''].join(' ')}>
-                                {PLATFORM_LABEL[t]}
-                            </span>
-                        </button>
-                    ))}
-                </div>
+            <Reveal delay={0.04} className={styles.tabsWrap}>
+                <AnimatedTabs
+                    tabs={TABS.map((t) => ({ value: t, label: PLATFORM_LABEL[t] }))}
+                    active={tab}
+                    onChange={setTab}
+                    layoutId="marketsTab"
+                />
             </Reveal>
 
             {tab === 'aave-v4' && <AaveV4Markets />}

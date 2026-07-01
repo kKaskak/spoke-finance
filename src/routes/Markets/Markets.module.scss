@@ -31,54 +31,8 @@
     letter-spacing: -0.01em;
 }
 
-.tabs {
-    @include row;
-    gap: 2px;
-    padding: 3px;
-    width: fit-content;
+.tabsWrap {
     align-self: center;
-    border-radius: var(--r-pill);
-    background: var(--surface-sub);
-}
-
-.tab {
-    position: relative;
-    padding: 8px 18px;
-    border: none;
-    border-radius: var(--r-pill);
-    background: transparent;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: color 0.2s var(--ease);
-
-    &:hover {
-        color: var(--text);
-    }
-
-    &:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25);
-    }
-}
-
-.tabBg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: var(--surface);
-    border-radius: var(--r-pill);
-    box-shadow: var(--shadow-sm);
-}
-
-.tabLabel {
-    position: relative;
-    z-index: 1;
-}
-
-.tabLabelActive {
-    color: var(--text);
 }
 
 .stats {

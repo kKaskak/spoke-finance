@@ -1,5 +1,7 @@
 import { BrowserProvider, Contract, formatUnits } from 'ethers';
+import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { AnimatedTabs } from '@/components/AnimatedTabs/AnimatedTabs';
 import { Button } from '@/components/Button/Button';
 import { HealthBadge } from '@/components/HealthBadge/HealthBadge';
 import { TokenIcon } from '@/components/TokenIcon/TokenIcon';
@@ -40,7 +42,12 @@ export const ActionDrawer = ({ target, portfolio, otherPlatforms, onClose, onSuc
 
     return (
         <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
+            <motion.div
+                layout
+                transition={{ layout: { type: 'spring', stiffness: 420, damping: 40 } }}
+                className={styles.panel}
+                onClick={(e) => e.stopPropagation()}
+            >
                 {isPooledTarget(target) ? (
                     <PooledDrawer
                         target={target}
@@ -52,7 +59,7 @@ export const ActionDrawer = ({ target, portfolio, otherPlatforms, onClose, onSuc
                 ) : (
                     <PairDrawer target={target} otherPlatforms={otherPlatforms} onClose={onClose} onSuccess={onSuccess} />
                 )}
-            </div>
+            </motion.div>
         </div>
     );
 };
@@ -200,16 +207,14 @@ const PooledDrawerInner = ({ platform, reserve, account, initialKind, onClose, o
                 </button>
             </div>
 
-            <div className={styles.tabs}>
-                {tabs.map((k) => (
-                    <button
-                        key={k}
-                        className={[styles.tab, kind === k ? styles.tabActive : ''].join(' ')}
-                        onClick={() => onPickKind(k)}
-                    >
-                        {labelFor[k]}
-                    </button>
-                ))}
+            <div className={styles.tabsWrap}>
+                <AnimatedTabs
+                    tabs={tabs.map((k) => ({ value: k, label: labelFor[k] }))}
+                    active={kind}
+                    onChange={onPickKind}
+                    layoutId="pooledDrawerTab"
+                    fullWidth
+                />
             </div>
 
             <div className={styles.inputBlock}>
@@ -236,6 +241,7 @@ const PooledDrawerInner = ({ platform, reserve, account, initialKind, onClose, o
 
             <input
                 className={styles.slider}
+                style={{ '--fill': `${sliderPct}%` } as React.CSSProperties}
                 type="range"
                 min={0}
                 max={100}
@@ -437,16 +443,14 @@ const PairDrawerInner = ({ platform, market, position, initialKind, onClose, onS
                 </button>
             </div>
 
-            <div className={styles.tabs}>
-                {(['supply', 'withdraw', 'borrow', 'repay'] as ActionKind[]).map((k) => (
-                    <button
-                        key={k}
-                        className={[styles.tab, kind === k ? styles.tabActive : ''].join(' ')}
-                        onClick={() => onPickKind(k)}
-                    >
-                        {labelFor[k]}
-                    </button>
-                ))}
+            <div className={styles.tabsWrap}>
+                <AnimatedTabs
+                    tabs={(['supply', 'withdraw', 'borrow', 'repay'] as ActionKind[]).map((k) => ({ value: k, label: labelFor[k] }))}
+                    active={kind}
+                    onChange={onPickKind}
+                    layoutId="pairDrawerTab"
+                    fullWidth
+                />
             </div>
 
             <div className={styles.inputBlock}>
@@ -473,6 +477,7 @@ const PairDrawerInner = ({ platform, market, position, initialKind, onClose, onS
 
             <input
                 className={styles.slider}
+                style={{ '--fill': `${sliderPct}%` } as React.CSSProperties}
                 type="range"
                 min={0}
                 max={100}
