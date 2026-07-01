@@ -227,7 +227,7 @@ export const Dashboard = () => {
                 </Reveal>
                 <Reveal delay={0.06}>
                     <p className={styles.heroSub}>
-                        Connect your wallet to manage Aave v4 and track your Aave v3, Morpho and Fluid positions.
+                        Connect your wallet to manage your positions across Aave v4, Aave v3, Morpho and Fluid.
                     </p>
                 </Reveal>
                 <Reveal delay={0.12} className={styles.heroCta}>
