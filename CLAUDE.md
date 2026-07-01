@@ -76,3 +76,7 @@ No prefixes on branches such as claude/ codex/ gemini/, clear consise PR names, 
 - Before creating a new `useEffect` or any other effect think about react guidelines of using these and how can we avoid it to correctly follow guidelines. 
 - Prefer stable function references, no inline in component `() => {}` passed as props
 - Correctly scope components to either routes/route/components if component is only used on this route or to src/components if component is global or used on diff routes.
+
+
+# Github Release flow
+- When asked to release, you do not tag and release the merge commit of a any branch, to keep the history nice and clean you create a clean release commit which includes just the version bump without any PR to the main/master branch then tag this commit with respective tag
