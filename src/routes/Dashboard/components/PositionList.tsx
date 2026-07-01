@@ -240,10 +240,13 @@ const GroupRow = ({ group, account, primaryKind, secondaryKind, aprAccent }: Gro
 
     const primaryLabel = primaryKind === 'supply' ? 'Supply' : 'Borrow';
     const secondaryLabel = secondaryKind === 'withdraw' ? 'Withdraw' : 'Repay';
-    const worstHf = group.entries
-        .map((e) => e.healthFactor)
-        .filter((hf): hf is number => typeof hf === 'number')
-        .reduce((min, hf) => (min === null ? hf : Math.min(min, hf)), null as number | null);
+    // health factor only exists per-position for isolated (Morpho/Fluid) entries; pooled entries (Aave) track it
+    // account-wide, not per-reserve, so a row with only pooled entries has nothing meaningful to show here
+    const hfEntries = group.entries.filter((e): e is Entry & { healthFactor: number | null } => e.healthFactor !== undefined);
+    const worstHf =
+        hfEntries.length > 0
+            ? hfEntries.reduce((min: number | null, e) => (e.healthFactor === null ? min : min === null ? e.healthFactor : Math.min(min, e.healthFactor)), null)
+            : undefined;
 
     return (
         <div className={styles.row}>
@@ -278,13 +281,13 @@ const GroupRow = ({ group, account, primaryKind, secondaryKind, aprAccent }: Gro
                     <span className={styles.amountSub}>{fmtUsd(group.totalUsd)}</span>
                 </div>
             )}
-            {primaryKind === 'borrow' && (
-                <div className={styles.health}>
+            {primaryKind === 'borrow' && worstHf !== undefined && (
+                <div className={[styles.health, single ? '' : styles.topAlign].join(' ')}>
                     <HealthBadge hf={worstHf} size="sm" />
                 </div>
             )}
             {primaryKind === 'supply' && (
-                <div className={styles.collateral}>
+                <div className={[styles.collateral, single ? '' : styles.topAlign].join(' ')}>
                     {single && single.canBeCollateral && single.isCollateral !== undefined ? (
                         <CollateralSwitch on={single.isCollateral} pending={togglePending} onToggle={onToggleCollateral} />
                     ) : (

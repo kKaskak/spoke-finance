@@ -138,6 +138,13 @@
     @include row;
 }
 
+// for multi-provider rows, the breakdown block is taller than this element; anchor it to the first
+// breakdown line instead of the whole block's center so it doesn't visually drift
+.topAlign {
+    align-self: flex-start;
+    margin-top: 6px;
+}
+
 .actions {
     @include row;
     gap: var(--s-2);
