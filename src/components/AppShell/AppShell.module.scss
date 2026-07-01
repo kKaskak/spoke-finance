@@ -18,7 +18,9 @@
 }
 
 .inner {
-    @include between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     max-width: var(--maxw);
     height: 100%;
     margin: 0 auto;
@@ -28,6 +30,8 @@
 
 .brand {
     @include row;
+    grid-column: 1;
+    justify-self: start;
     gap: var(--s-2);
     color: var(--text);
     font-size: 17px;
@@ -44,6 +48,7 @@
 
 .tabs {
     @include row;
+    grid-column: 2;
     gap: 2px;
     padding: 3px;
     border-radius: var(--r-pill);
@@ -88,6 +93,8 @@
 
 .right {
     @include row;
+    grid-column: 3;
+    justify-self: end;
     gap: var(--s-3);
 }
 
