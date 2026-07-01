@@ -8,30 +8,126 @@ import { WalletButton } from '@/components/WalletButton/WalletButton';
 import { useApp } from '@/lib/app';
 import { fmtPct, fmtUsd } from '@/lib/format';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
-import type { ReserveWithUser } from '@shared/types';
+import type { PlatformKey } from '@/lib/platform';
+import type { PairPosition, ReserveWithUser } from '@shared/types';
 import { AllocationDonut, type Slice } from './components/AllocationDonut';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
 import { HealthGauge } from './components/HealthGauge';
 import { LoopSimulator } from './components/LoopSimulator';
+import { type OtherRow, OtherPositions } from './components/OtherPositions';
+import { type PlatformRow, PlatformBreakdown } from './components/PlatformBreakdown';
 import { BorrowRow, SupplyRow } from './components/PositionList';
 import styles from './Dashboard.module.scss';
 
 const usd0 = (n: number) => fmtUsd(n);
 
-const toSlices = (reserves: ReserveWithUser[], key: 'suppliedUsd' | 'debtUsd'): Slice[] =>
+const toSlices = (reserves: ReserveWithUser[], key: 'suppliedUsd' | 'debtUsd', platform: PlatformKey): Slice[] =>
     reserves
         .filter((r) => r[key] > 0)
-        .map((r) => ({ symbol: r.symbol, address: r.underlying, usd: r[key] }))
-        .sort((a, b) => b.usd - a.usd);
+        .map((r) => ({ id: `${platform}:${r.underlying}`, symbol: r.symbol, address: r.underlying, usd: r[key], platform }));
+
+const pairToSlices = (positions: PairPosition[], key: 'suppliedUsd' | 'debtUsd', platform: PlatformKey): Slice[] =>
+    positions
+        .filter((p) => p[key] > 0)
+        .map((p) => {
+            const isSupply = key === 'suppliedUsd';
+            return {
+                id: `${platform}:${p.id}:${key}`,
+                symbol: isSupply ? p.supplySymbol : p.borrowSymbol,
+                address: isSupply ? p.supplyAddress : p.borrowAddress,
+                usd: p[key],
+                platform
+            };
+        });
+
+const pairToRows = (positions: PairPosition[], platform: 'morpho' | 'fluid'): OtherRow[] =>
+    positions.map((p) => ({
+        key: `${platform}:${p.id}`,
+        platform,
+        primarySymbol: p.supplySymbol,
+        primaryAddress: p.supplyAddress,
+        secondarySymbol: p.borrowSymbol,
+        secondaryAddress: p.borrowAddress,
+        suppliedAmount: p.supplied,
+        suppliedUsd: p.suppliedUsd,
+        debtAmount: p.debt,
+        debtUsd: p.debtUsd,
+        healthFactor: p.healthFactor
+    }));
 
 export const Dashboard = () => {
-    const { portfolio } = useApp();
+    const { portfolio, otherPlatforms } = useApp();
     const { account, reserves, loading, error, connected } = portfolio;
+    const { aaveV3Reserves, aaveV3Account, morpho, fluid } = otherPlatforms;
 
     const supplies = useMemo(() => reserves.filter((r) => r.supplied > 0), [reserves]);
     const borrows = useMemo(() => reserves.filter((r) => r.debt > 0), [reserves]);
-    const collateralSlices = useMemo(() => toSlices(reserves, 'suppliedUsd'), [reserves]);
-    const borrowSlices = useMemo(() => toSlices(reserves, 'debtUsd'), [reserves]);
+
+    const collateralSlices = useMemo(
+        () => [
+            ...toSlices(reserves, 'suppliedUsd', 'aave-v4'),
+            ...toSlices(aaveV3Reserves, 'suppliedUsd', 'aave-v3'),
+            ...pairToSlices(morpho.positions, 'suppliedUsd', 'morpho'),
+            ...pairToSlices(fluid.positions, 'suppliedUsd', 'fluid')
+        ].sort((a, b) => b.usd - a.usd),
+        [reserves, aaveV3Reserves, morpho.positions, fluid.positions]
+    );
+    const borrowSlices = useMemo(
+        () => [
+            ...toSlices(reserves, 'debtUsd', 'aave-v4'),
+            ...toSlices(aaveV3Reserves, 'debtUsd', 'aave-v3'),
+            ...pairToSlices(morpho.positions, 'debtUsd', 'morpho'),
+            ...pairToSlices(fluid.positions, 'debtUsd', 'fluid')
+        ].sort((a, b) => b.usd - a.usd),
+        [reserves, aaveV3Reserves, morpho.positions, fluid.positions]
+    );
+
+    const platformRows: PlatformRow[] = useMemo(
+        () =>
+            account
+                ? [
+                      { platform: 'aave-v4', label: 'Aave v4', collateralUsd: account.collateralUsd, debtUsd: account.debtUsd, healthFactor: account.healthFactor },
+                      {
+                          platform: 'aave-v3',
+                          label: 'Aave v3',
+                          collateralUsd: aaveV3Account?.collateralUsd ?? 0,
+                          debtUsd: aaveV3Account?.debtUsd ?? 0,
+                          healthFactor: aaveV3Account?.healthFactor ?? null
+                      },
+                      { platform: 'morpho', label: 'Morpho', collateralUsd: morpho.collateralUsd, debtUsd: morpho.debtUsd, healthFactor: morpho.healthFactor },
+                      { platform: 'fluid', label: 'Fluid', collateralUsd: fluid.collateralUsd, debtUsd: fluid.debtUsd, healthFactor: fluid.healthFactor }
+                  ]
+                : [],
+        [account, aaveV3Account, morpho, fluid]
+    );
+
+    const totalCollateralUsd = platformRows.reduce((s, p) => s + p.collateralUsd, 0);
+    const totalDebtUsd = platformRows.reduce((s, p) => s + p.debtUsd, 0);
+    const totalNetWorthUsd = totalCollateralUsd - totalDebtUsd;
+    const platformHfs = platformRows.map((p) => p.healthFactor).filter((hf): hf is number => hf !== null);
+    const overallHealthFactor = platformHfs.length > 0 ? Math.min(...platformHfs) : null;
+
+    const otherRows: OtherRow[] = useMemo(
+        () =>
+            [
+                ...aaveV3Reserves
+                    .filter((r) => r.supplied > 0 || r.debt > 0)
+                    .map((r): OtherRow => ({
+                        key: `aave-v3:${r.underlying}`,
+                        platform: 'aave-v3',
+                        primarySymbol: r.symbol,
+                        primaryAddress: r.underlying,
+                        suppliedAmount: r.supplied,
+                        suppliedUsd: r.suppliedUsd,
+                        debtAmount: r.debt,
+                        debtUsd: r.debtUsd,
+                        healthFactor: undefined
+                    })),
+                ...pairToRows(morpho.positions, 'morpho'),
+                ...pairToRows(fluid.positions, 'fluid')
+            ].sort((a, b) => b.suppliedUsd + b.debtUsd - (a.suppliedUsd + a.debtUsd)),
+        [aaveV3Reserves, morpho.positions, fluid.positions]
+    );
 
     const market = useMemo(
         () => ({
@@ -58,10 +154,12 @@ export const Dashboard = () => {
         return (
             <div className={styles.hero}>
                 <Reveal>
-                    <h1 className={styles.heroTitle}>Your Aave v4 portfolio, beautifully clear.</h1>
+                    <h1 className={styles.heroTitle}>Your DeFi portfolio, beautifully clear.</h1>
                 </Reveal>
                 <Reveal delay={0.06}>
-                    <p className={styles.heroSub}>Connect your wallet to view and manage your Aave v4 positions.</p>
+                    <p className={styles.heroSub}>
+                        Connect your wallet to manage Aave v4 and track your Aave v3, Morpho and Fluid positions.
+                    </p>
                 </Reveal>
                 <Reveal delay={0.12} className={styles.heroCta}>
                     <WalletButton />
@@ -81,7 +179,8 @@ export const Dashboard = () => {
         );
     }
 
-    if (account && account.collateralUsd === 0 && account.debtUsd === 0) {
+    if (account && totalCollateralUsd === 0 && totalDebtUsd === 0) {
+        if (otherPlatforms.loading) return <DashboardSkeleton />;
         return (
             <div className={styles.emptyState}>
                 <Reveal>
@@ -113,7 +212,7 @@ export const Dashboard = () => {
                     <span className={styles.heroLabel}>Net Worth</span>
                     <AnimatedNumber
                         className={styles.heroNumber}
-                        value={account.netWorthUsd}
+                        value={totalNetWorthUsd}
                         format={usd0}
                     />
                 </div>
@@ -126,6 +225,7 @@ export const Dashboard = () => {
                             label="Net APR"
                             value={`${netAprSign}${fmtPct(Math.abs(account.netApr))}`}
                             accent={netAprAccent}
+                            sub="Aave v4"
                         />
                     </div>
                     <div className={styles.statCard}>
@@ -133,13 +233,13 @@ export const Dashboard = () => {
                             label="Health Factor"
                             value={
                                 <span className={styles.healthBadgeRow}>
-                                    <HealthBadge hf={account.healthFactor} size="lg" />
+                                    <HealthBadge hf={overallHealthFactor} size="lg" />
                                 </span>
                             }
                         />
                     </div>
                     <div className={styles.statCard}>
-                        <StatTile label="Available to Borrow" value={fmtUsd(account.availableBorrowsUsd)} />
+                        <StatTile label="Available to Borrow" value={fmtUsd(account.availableBorrowsUsd)} sub="Aave v4" />
                     </div>
                 </div>
             </Reveal>
@@ -147,7 +247,7 @@ export const Dashboard = () => {
             <Reveal delay={0.12}>
                 <div className={styles.charts}>
                     <Card title="Health">
-                        <HealthGauge hf={account.healthFactor} />
+                        <HealthGauge hf={overallHealthFactor} />
                     </Card>
                     <div className={styles.donuts}>
                         <Card title="Collateral">
@@ -158,6 +258,12 @@ export const Dashboard = () => {
                         </Card>
                     </div>
                 </div>
+            </Reveal>
+
+            <Reveal delay={0.15}>
+                <Card title="Platforms">
+                    <PlatformBreakdown rows={platformRows} />
+                </Card>
             </Reveal>
 
             {account.collateralUsd > 0 && (
@@ -185,6 +291,12 @@ export const Dashboard = () => {
                     ) : (
                         borrows.map((r) => <BorrowRow key={r.id} reserve={r} />)
                     )}
+                </Card>
+            </Reveal>
+
+            <Reveal delay={0.3}>
+                <Card title="Other platforms">
+                    <OtherPositions rows={otherRows} />
                 </Card>
             </Reveal>
         </div>

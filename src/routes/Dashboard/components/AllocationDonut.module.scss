@@ -67,6 +67,15 @@
     color: var(--text);
 }
 
+.platformTag {
+    padding: 2px var(--s-2);
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
 .usd {
     @include tnum;
     margin-left: auto;
