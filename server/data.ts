@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import { PRICE_DECIMALS, RAY, SPOKE_ADDRESS, VALUE_SCALE } from '../shared/constants';
 import type { AccountSummary, PositionResponse, Reserve, ReserveWithUser } from '../shared/types';
 import { erc20, hubContract, oracle, spoke } from './chain';
+import { mapLimit, withRetry } from './util';
 
 type RawReserve = {
     id: number;
@@ -16,41 +17,6 @@ type RawReserve = {
     borrowable: boolean;
     frozen: boolean;
     paused: boolean;
-};
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const TRANSIENT =
-    /429|compute units|rate limit|throughput|missing revert data|CALL_EXCEPTION|SERVER_ERROR|TIMEOUT|could not coalesce|bad result|ECONNRESET|ETIMEDOUT|socket hang up|fetch failed|502|503|504/i;
-
-const isTransient = (e: unknown): boolean => {
-    const err = e as { code?: string; message?: string; info?: { error?: { code?: number } } };
-    if (err?.info?.error?.code === 429) return true;
-    return TRANSIENT.test(`${err?.code ?? ''} ${String(err?.message ?? e)}`);
-};
-
-const withRetry = async <T>(fn: () => Promise<T>, tries = 7): Promise<T> => {
-    for (let i = 0; ; i++) {
-        try {
-            return await fn();
-        } catch (e) {
-            if (i >= tries - 1 || !isTransient(e)) throw e;
-            await sleep(200 * 2 ** i);
-        }
-    }
-};
-
-const mapLimit = async <T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> => {
-    const out: R[] = new Array(items.length);
-    let next = 0;
-    const worker = async () => {
-        while (next < items.length) {
-            const i = next++;
-            out[i] = await withRetry(() => fn(items[i], i));
-        }
-    };
-    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-    return out;
 };
 
 const num = (value: bigint, decimals: number) => Number(ethers.formatUnits(value, decimals));
