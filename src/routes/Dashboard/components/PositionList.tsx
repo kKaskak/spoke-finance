@@ -250,18 +250,34 @@ const GroupRow = ({ group, account, primaryKind, secondaryKind, aprAccent }: Gro
             <div className={styles.asset}>
                 <TokenIcon symbol={group.symbol} address={group.address} size={32} />
                 <span className={styles.sym}>{group.symbol}</span>
+                {single && (
+                    <span className={styles.platformTag}>
+                        <PlatformIcon platform={single.platform} size={14} />
+                        {PLATFORM_LABEL[single.platform]}
+                    </span>
+                )}
             </div>
-            <div className={styles.breakdown}>
-                {group.entries.map((e) => (
-                    <div key={e.key} className={styles.breakdownRow}>
-                        <PlatformIcon platform={e.platform} size={16} />
-                        <span className={styles.breakdownPlatform}>{PLATFORM_LABEL[e.platform]}</span>
-                        <span className={styles.amountMain}>{fmtToken(e.amount)}</span>
-                        <span className={[styles.apr, styles[aprAccent]].join(' ')}>{fmtPct(e.apr)}</span>
+            {single ? (
+                <>
+                    <div className={styles.amount}>
+                        <span className={styles.amountMain}>{fmtToken(single.amount)}</span>
+                        <span className={styles.amountSub}>{fmtUsd(single.amountUsd)}</span>
                     </div>
-                ))}
-                <span className={styles.amountSub}>{fmtUsd(group.totalUsd)}</span>
-            </div>
+                    <span className={[styles.apr, styles[aprAccent]].join(' ')}>{fmtPct(single.apr)}</span>
+                </>
+            ) : (
+                <div className={styles.breakdown}>
+                    {group.entries.map((e) => (
+                        <div key={e.key} className={styles.breakdownRow}>
+                            <PlatformIcon platform={e.platform} size={16} />
+                            <span className={styles.breakdownPlatform}>{PLATFORM_LABEL[e.platform]}</span>
+                            <span className={styles.amountMain}>{fmtToken(e.amount)}</span>
+                            <span className={[styles.apr, styles[aprAccent]].join(' ')}>{fmtPct(e.apr)}</span>
+                        </div>
+                    ))}
+                    <span className={styles.amountSub}>{fmtUsd(group.totalUsd)}</span>
+                </div>
+            )}
             {primaryKind === 'borrow' && (
                 <div className={styles.health}>
                     <HealthBadge hf={worstHf} size="sm" />
