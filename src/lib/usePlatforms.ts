@@ -40,6 +40,7 @@ export const usePlatforms = (): OtherPlatforms => {
 
     useEffect(() => {
         let active = true;
+        setError(null);
 
         const load = async () => {
             if (address) {
@@ -63,8 +64,13 @@ export const usePlatforms = (): OtherPlatforms => {
             }
         };
 
+        let retryId: ReturnType<typeof setTimeout> | undefined;
         load()
-            .catch((e) => active && setError(e.message))
+            .catch((e) => {
+                if (!active) return;
+                setError(e.message);
+                retryId = setTimeout(refresh, 8_000);
+            })
             .finally(() => active && setLoading(false));
 
         const poll = () => {
@@ -74,10 +80,11 @@ export const usePlatforms = (): OtherPlatforms => {
         document.addEventListener('visibilitychange', poll);
         return () => {
             active = false;
+            clearTimeout(retryId);
             clearInterval(id);
             document.removeEventListener('visibilitychange', poll);
         };
-    }, [address, tick]);
+    }, [address, tick, refresh]);
 
     return { ...state, loading, error, refresh };
 };

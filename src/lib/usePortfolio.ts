@@ -54,8 +54,13 @@ export const usePortfolio = (): Portfolio => {
             }
         };
 
+        let retryId: ReturnType<typeof setTimeout> | undefined;
         load()
-            .catch((e) => active && setError(e.message))
+            .catch((e) => {
+                if (!active) return;
+                setError(e.message);
+                retryId = setTimeout(refresh, 8_000);
+            })
             .finally(() => active && setLoading(false));
 
         const poll = () => {
@@ -65,6 +70,7 @@ export const usePortfolio = (): Portfolio => {
         document.addEventListener('visibilitychange', poll);
         return () => {
             active = false;
+            clearTimeout(retryId);
             clearInterval(id);
             document.removeEventListener('visibilitychange', poll);
         };

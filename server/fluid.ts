@@ -79,7 +79,7 @@ const loadVaults = async (): Promise<VaultEntireData[]> => {
 
 export const getMarkets = async (): Promise<PairMarket[]> => {
     if (marketsCache && Date.now() - marketsCache.at < 60_000) return marketsCache.data;
-    return buildMarkets();
+    return buildMarkets().catch((e) => { if (marketsCache) return marketsCache.data; throw e; });
 };
 
 const buildMarkets = async (): Promise<PairMarket[]> => {
@@ -121,7 +121,7 @@ const summaryCache = new Map<string, { at: number; data: PlatformSummary }>();
 export const getSummary = async (address: string): Promise<PlatformSummary> => {
     const cached = summaryCache.get(address);
     if (cached && Date.now() - cached.at < 10_000) return cached.data;
-    return loadSummary(address);
+    return loadSummary(address).catch((e) => { if (cached) return cached.data; throw e; });
 };
 
 const loadSummary = async (address: string): Promise<PlatformSummary> => {
