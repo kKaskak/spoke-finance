@@ -26,7 +26,9 @@ try { process.loadEnvFile?.(); } catch { /* no .env file (Cloudflare/CI) */ }
 export const getProvider = () => {
     const rpc = process.env.ALCHEMY_RPC_URL;
     if (!rpc) throw new Error('ALCHEMY_RPC_URL missing in .env');
-    return new ethers.JsonRpcProvider(rpc, CHAIN_ID, { staticNetwork: true });
+    const req = new ethers.FetchRequest(rpc);
+    req.timeout = 15_000;
+    return new ethers.JsonRpcProvider(req, CHAIN_ID, { staticNetwork: true });
 };
 
 const lazyContract = (address: string, abi: ethers.InterfaceAbi) => {

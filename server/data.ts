@@ -75,7 +75,7 @@ const loadRawReserves = async (): Promise<RawReserve[]> => {
 // ponytail: no in-flight dedup — Workers cancel promises awaited across requests; duplicate loads are absorbed by the caches
 export const getReserves = async (): Promise<Reserve[]> => {
     if (reservesCache && Date.now() - reservesCache.at < 15_000) return reservesCache.data;
-    return loadReserves();
+    return loadReserves().catch((e) => { if (reservesCache) return reservesCache.data; throw e; });
 };
 
 const loadReserves = async (): Promise<Reserve[]> => {
@@ -128,7 +128,7 @@ const loadReserves = async (): Promise<Reserve[]> => {
 export const getPosition = async (address: string): Promise<PositionResponse> => {
     const cached = positionCache.get(address);
     if (cached && Date.now() - cached.at < 10_000) return cached.data;
-    return loadPosition(address);
+    return loadPosition(address).catch((e) => { if (cached) return cached.data; throw e; });
 };
 
 const loadPosition = async (address: string): Promise<PositionResponse> => {
