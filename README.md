@@ -1,6 +1,10 @@
-# Spoke
+# Spoke Finance
+
+<img width="1570" height="1056" alt="Screenshot 2026-07-02 at 21 33 22" src="https://github.com/user-attachments/assets/16e996d7-c6a5-4bf0-a5bb-ff34e13fe7cb" />
 
 Connect a wallet to manage your Aave v4 Bluechip Spoke position (`0x973a023A77420ba610f06b3858aD991Df6d85A08`), Aave v3, Morpho, and Fluid positions on Ethereum mainnet — all in one portfolio. Live health-factor projection, allocation charts, and per-asset market data.
+
+<img width="1563" height="1055" alt="Screenshot 2026-07-02 at 21 33 31" src="https://github.com/user-attachments/assets/e9963632-7dd9-4b0c-b237-07c746902273" />
 
 ## Stack
 
