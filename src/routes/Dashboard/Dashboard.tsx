@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/Button/Button';
 import { Card } from '@/components/Card/Card';
 import { HealthBadge } from '@/components/HealthBadge/HealthBadge';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { StatTile } from '@/components/StatTile/StatTile';
 import { WalletButton } from '@/components/WalletButton/WalletButton';
 import { useApp } from '@/lib/app';
@@ -207,19 +208,8 @@ export const Dashboard = () => {
         };
     }, [reserves, aaveV3Reserves, morpho.markets, fluid.markets]);
 
-    if (loading && reserves.length === 0) {
-        return <DashboardSkeleton />;
-    }
-
-    if (error && reserves.length === 0) {
-        return (
-            <Card title="Something went wrong">
-                <p className={styles.errText}>{error}</p>
-            </Card>
-        );
-    }
-
     if (!connected) {
+        const marketReady = market.markets > 0;
         return (
             <div className={styles.hero}>
                 <Reveal>
@@ -235,16 +225,40 @@ export const Dashboard = () => {
                 </Reveal>
                 <Reveal delay={0.18} className={styles.marketStrip}>
                     <div className={styles.marketStat}>
-                        <StatTile label="Total Market Size" value={fmtUsd(market.size, true)} sub="All platforms" />
+                        <StatTile
+                            label="Total Market Size"
+                            value={marketReady ? fmtUsd(market.size, true) : <Skeleton width={90} height={24} />}
+                            sub="All platforms"
+                        />
                     </div>
                     <div className={styles.marketStat}>
-                        <StatTile label="Total Borrowed" value={fmtUsd(market.borrowed, true)} sub="All platforms" />
+                        <StatTile
+                            label="Total Borrowed"
+                            value={marketReady ? fmtUsd(market.borrowed, true) : <Skeleton width={90} height={24} />}
+                            sub="All platforms"
+                        />
                     </div>
                     <div className={styles.marketStat}>
-                        <StatTile label="Markets" value={market.markets} sub="All platforms" />
+                        <StatTile
+                            label="Markets"
+                            value={marketReady ? market.markets : <Skeleton width={40} height={24} />}
+                            sub="All platforms"
+                        />
                     </div>
                 </Reveal>
             </div>
+        );
+    }
+
+    if (loading && reserves.length === 0) {
+        return <DashboardSkeleton />;
+    }
+
+    if (error && reserves.length === 0) {
+        return (
+            <Card title="Something went wrong">
+                <p className={styles.errText}>{error}</p>
+            </Card>
         );
     }
 
@@ -269,7 +283,7 @@ export const Dashboard = () => {
         );
     }
 
-    if (!account) return null;
+    if (!account) return <DashboardSkeleton />;
 
     const netAprAccent = overallNetApr >= 0 ? 'supply' : 'borrow';
     const netAprSign = overallNetApr >= 0 ? '+' : '−';

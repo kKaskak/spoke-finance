@@ -5,5 +5,6 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY server ./server
 COPY shared ./shared
+RUN pnpm exec esbuild server/index.ts --bundle --platform=node --format=cjs --outfile=dist/index.cjs
 EXPOSE 8787
-CMD ["pnpm", "exec", "tsx", "server/index.ts"]
+CMD ["node", "dist/index.cjs"]
