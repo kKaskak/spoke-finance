@@ -8,6 +8,7 @@ import { StatTile } from '@/components/StatTile/StatTile';
 import { WalletButton } from '@/components/WalletButton/WalletButton';
 import { useApp } from '@/lib/app';
 import { fmtPct, fmtUsd } from '@/lib/format';
+import { useLidoApr } from '@/lib/lido';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
 import type { PlatformKey } from '@/lib/platform';
 import type { PairMarket, PairPosition, ReserveWithUser } from '@shared/types';
@@ -49,6 +50,16 @@ const pairMarketFor = (position: PairPosition, markets: PairMarket[]): PairMarke
 const pooledNetInterest = (reserves: ReserveWithUser[]): number =>
     reserves.reduce((s, r) => s + r.suppliedUsd * r.supplyApr - r.debtUsd * r.borrowApr, 0);
 
+const isWstEth = (symbol: string) => symbol.toLowerCase() === 'wsteth';
+
+// wstETH accrues staking yield via its exchange rate, on top of the lending APR
+const wstEthNetExposureUsd = (reserves: ReserveWithUser[], positions: PairPosition[]): number =>
+    reserves.reduce((s, r) => s + (isWstEth(r.symbol) ? r.suppliedUsd - r.debtUsd : 0), 0) +
+    positions.reduce(
+        (s, p) => s + (isWstEth(p.supplySymbol) ? p.suppliedUsd : 0) - (isWstEth(p.borrowSymbol) ? p.debtUsd : 0),
+        0
+    );
+
 const pairNetInterest = (positions: PairPosition[], markets: PairMarket[]): number =>
     positions.reduce((s, p) => {
         const m = pairMarketFor(p, markets);
@@ -80,6 +91,7 @@ export const Dashboard = () => {
     const { portfolio, otherPlatforms } = useApp();
     const { account, reserves, loading, error, connected } = portfolio;
     const { aaveV3Reserves, aaveV3Account, morpho, fluid } = otherPlatforms;
+    const lidoApr = useLidoApr();
 
     const supplyItems: SupplyItem[] = useMemo(
         () => [
@@ -195,7 +207,8 @@ export const Dashboard = () => {
         pooledNetInterest(reserves) +
         pooledNetInterest(aaveV3Reserves) +
         pairNetInterest(morpho.positions, morpho.markets) +
-        pairNetInterest(fluid.positions, fluid.markets);
+        pairNetInterest(fluid.positions, fluid.markets) +
+        wstEthNetExposureUsd([...reserves, ...aaveV3Reserves], [...morpho.positions, ...fluid.positions]) * lidoApr;
     const overallNetApr = totalNetWorthUsd > 0 ? totalNetInterest / totalNetWorthUsd : 0;
 
     const market = useMemo(() => {
