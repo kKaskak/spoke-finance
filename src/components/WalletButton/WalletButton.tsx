@@ -15,7 +15,7 @@ export const WalletButton = () => {
 
     if (!hasWallet) {
         return (
-            <a href="https://metamask.io/download/" target="_blank" rel="noreferrer">
+            <a href="https://www.ambire.com/get-extension" target="_blank" rel="noreferrer">
                 <Button variant="secondary" size="sm">
                     Install Wallet
                 </Button>
