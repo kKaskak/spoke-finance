@@ -24,6 +24,10 @@
     @include row;
     gap: var(--s-3);
     min-width: 150px;
+
+    @include mobile {
+        width: 100%;
+    }
 }
 
 .sym {
@@ -81,6 +85,10 @@
     flex-direction: column;
     flex: 1;
     min-width: 0;
+
+    @include mobile {
+        flex-basis: 100%;
+    }
 }
 
 .breakdownRow {
@@ -154,6 +162,10 @@
 .collateralLabel {
     font-size: 13px;
     color: var(--text-tertiary);
+
+    @include mobile {
+        display: none;
+    }
 }
 
 .health {
@@ -171,6 +183,14 @@
     @include row;
     gap: var(--s-2);
     position: relative;
+
+    @include mobile {
+        width: 100%;
+
+        > * {
+            flex: 1;
+        }
+    }
 }
 
 .pickerBackdrop {
