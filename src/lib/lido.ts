@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 const LIDO_APR_URL = 'https://eth-api.lido.fi/v1/protocol/steth/apr/sma';
 
+export const isWstEth = (symbol: string) => symbol.toLowerCase() === 'wsteth';
+
 let cached: number | null = null;
 
 export const useLidoApr = (): number => {

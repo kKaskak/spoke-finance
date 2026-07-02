@@ -8,7 +8,7 @@ import { StatTile } from '@/components/StatTile/StatTile';
 import { WalletButton } from '@/components/WalletButton/WalletButton';
 import { useApp } from '@/lib/app';
 import { fmtPct, fmtUsd } from '@/lib/format';
-import { useLidoApr } from '@/lib/lido';
+import { isWstEth, useLidoApr } from '@/lib/lido';
 import { AnimatedNumber, Reveal } from '@/lib/motion';
 import type { PlatformKey } from '@/lib/platform';
 import type { PairMarket, PairPosition, ReserveWithUser } from '@shared/types';
@@ -49,8 +49,6 @@ const pairMarketFor = (position: PairPosition, markets: PairMarket[]): PairMarke
 
 const pooledNetInterest = (reserves: ReserveWithUser[]): number =>
     reserves.reduce((s, r) => s + r.suppliedUsd * r.supplyApr - r.debtUsd * r.borrowApr, 0);
-
-const isWstEth = (symbol: string) => symbol.toLowerCase() === 'wsteth';
 
 // wstETH accrues staking yield via its exchange rate, on top of the lending APR
 const wstEthNetExposureUsd = (reserves: ReserveWithUser[], positions: PairPosition[]): number =>
