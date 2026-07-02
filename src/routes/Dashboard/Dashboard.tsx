@@ -269,6 +269,18 @@ export const Dashboard = () => {
         return (
             <Card title="Something went wrong">
                 <p className={styles.errText}>{error}</p>
+                <Button
+                    size="sm"
+                    variant="secondary"
+                    className={styles.errReload}
+                    loading={loading}
+                    onClick={() => {
+                        portfolio.refresh();
+                        otherPlatforms.refresh();
+                    }}
+                >
+                    Reload
+                </Button>
             </Card>
         );
     }
