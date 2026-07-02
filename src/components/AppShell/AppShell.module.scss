@@ -15,6 +15,10 @@
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid var(--border);
+
+    @include mobile {
+        height: auto;
+    }
 }
 
 .inner {
@@ -26,6 +30,16 @@
     margin: 0 auto;
     padding: 0 var(--s-5);
     gap: var(--s-4);
+
+    @include mobile {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+            'brand right'
+            'tabs tabs';
+        height: auto;
+        padding: var(--s-3) var(--s-4);
+        row-gap: var(--s-2);
+    }
 }
 
 .brand {
@@ -37,6 +51,10 @@
     font-size: 17px;
     font-weight: 600;
     letter-spacing: -0.02em;
+
+    @include mobile {
+        grid-area: brand;
+    }
 }
 
 .mark {
@@ -56,7 +74,9 @@
     background: var(--surface-sub);
 
     @include mobile {
-        display: none;
+        grid-area: tabs;
+        grid-column: auto;
+        width: 100%;
     }
 }
 
@@ -67,10 +87,15 @@
     font-size: 14px;
     font-weight: 500;
     color: var(--text-secondary);
+    text-align: center;
     transition: color 0.2s var(--ease);
 
     &:hover {
         color: var(--text);
+    }
+
+    @include mobile {
+        flex: 1;
     }
 }
 
@@ -99,6 +124,10 @@
     grid-column: 3;
     justify-self: end;
     gap: var(--s-3);
+
+    @include mobile {
+        grid-area: right;
+    }
 }
 
 .main {

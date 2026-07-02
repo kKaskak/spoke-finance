@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 :root {
     --bg: #ffffff;
     --bg-sub: #f5f5f7;
@@ -53,4 +55,8 @@
     --nav-h: 52px;
 
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+    @include mobile {
+        --nav-h: 104px;
+    }
 }
