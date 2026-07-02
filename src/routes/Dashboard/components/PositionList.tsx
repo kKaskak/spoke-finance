@@ -9,6 +9,7 @@ import { useApp, type PairPlatform, type PooledPlatform } from '@/lib/app';
 import { setAaveV3Collateral, setCollateral } from '@/lib/contracts';
 import { parseTxError } from '@/lib/errors';
 import { fmtPct, fmtToken, fmtUsd } from '@/lib/format';
+import { isWstEth, useLidoApr } from '@/lib/lido';
 import { PLATFORM_LABEL, type PlatformKey } from '@/lib/platform';
 import { useToast } from '@/lib/toast';
 import { useWallet } from '@/lib/wallet';
@@ -63,7 +64,10 @@ type Entry = {
     marketId: string | undefined;
 };
 
-const supplyEntry = (item: SupplyItem): Entry =>
+// wstETH accrues staking yield via its exchange rate, on top of the lending rate shown here
+const withLidoApr = (symbol: string, apr: number, lidoApr: number) => (isWstEth(symbol) ? apr + lidoApr : apr);
+
+const supplyEntry = (item: SupplyItem, lidoApr: number): Entry =>
     item.kind === 'pooled'
         ? {
             key: `${item.platform}-${item.reserve.id}`,
@@ -72,7 +76,7 @@ const supplyEntry = (item: SupplyItem): Entry =>
             address: item.reserve.underlying,
             amount: item.reserve.supplied,
             amountUsd: item.reserve.suppliedUsd,
-            apr: item.reserve.supplyApr,
+            apr: withLidoApr(item.reserve.symbol, item.reserve.supplyApr, lidoApr),
             healthFactor: undefined,
             isCollateral: item.reserve.isCollateral,
             canBeCollateral: item.reserve.canBeCollateral,
@@ -86,7 +90,7 @@ const supplyEntry = (item: SupplyItem): Entry =>
             address: item.market.supplyAddress,
             amount: item.position.supplied,
             amountUsd: item.position.suppliedUsd,
-            apr: item.market.supplyApr,
+            apr: withLidoApr(item.market.supplySymbol, item.market.supplyApr, lidoApr),
             healthFactor: undefined,
             isCollateral: undefined,
             canBeCollateral: false,
@@ -94,7 +98,7 @@ const supplyEntry = (item: SupplyItem): Entry =>
             marketId: item.position.marketId
         };
 
-const borrowEntry = (item: BorrowItem): Entry =>
+const borrowEntry = (item: BorrowItem, lidoApr: number): Entry =>
     item.kind === 'pooled'
         ? {
             key: `${item.platform}-${item.reserve.id}`,
@@ -103,7 +107,7 @@ const borrowEntry = (item: BorrowItem): Entry =>
             address: item.reserve.underlying,
             amount: item.reserve.debt,
             amountUsd: item.reserve.debtUsd,
-            apr: item.reserve.borrowApr,
+            apr: withLidoApr(item.reserve.symbol, item.reserve.borrowApr, lidoApr),
             healthFactor: undefined,
             isCollateral: undefined,
             canBeCollateral: false,
@@ -117,7 +121,7 @@ const borrowEntry = (item: BorrowItem): Entry =>
             address: item.market.borrowAddress,
             amount: item.position.debt,
             amountUsd: item.position.debtUsd,
-            apr: item.market.borrowApr,
+            apr: withLidoApr(item.market.borrowSymbol, item.market.borrowApr, lidoApr),
             healthFactor: item.position.healthFactor,
             isCollateral: undefined,
             canBeCollateral: false,
@@ -322,7 +326,8 @@ type SupplyListProps = {
 };
 
 export const SupplyList = ({ items, account }: SupplyListProps) => {
-    const groups = useMemo(() => groupBySymbol(items.map(supplyEntry)), [items]);
+    const lidoApr = useLidoApr();
+    const groups = useMemo(() => groupBySymbol(items.map((i) => supplyEntry(i, lidoApr))), [items, lidoApr]);
     return (
         <>
             {groups.map((g) => (
@@ -338,7 +343,8 @@ type BorrowListProps = {
 };
 
 export const BorrowList = ({ items, account }: BorrowListProps) => {
-    const groups = useMemo(() => groupBySymbol(items.map(borrowEntry)), [items]);
+    const lidoApr = useLidoApr();
+    const groups = useMemo(() => groupBySymbol(items.map((i) => borrowEntry(i, lidoApr))), [items, lidoApr]);
     return (
         <>
             {groups.map((g) => (
