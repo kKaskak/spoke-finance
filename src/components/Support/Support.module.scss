@@ -37,7 +37,7 @@
     align-items: center;
     justify-content: center;
     padding: var(--s-4);
-    background: rgba(0, 0, 0, 0.32);
+    background: var(--overlay);
     backdrop-filter: blur(4px);
     animation: fade 0.2s ease;
 }
@@ -78,7 +78,7 @@
     height: 52px;
     margin-bottom: var(--s-4);
     border-radius: 50%;
-    background: rgba(229, 52, 42, 0.1);
+    background: var(--red-soft);
     color: var(--red);
 
     svg {
@@ -124,8 +124,8 @@
 
 .chipActive {
     background: var(--surface);
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: var(--link);
+    color: var(--link);
 }
 
 .inputRow {
@@ -189,14 +189,14 @@
     margin-left: auto;
     font-size: 12px;
     font-weight: 500;
-    color: var(--accent);
+    color: var(--link);
 }
 
 .error {
     padding: var(--s-3) var(--s-4);
     margin-bottom: var(--s-4);
     border-radius: var(--r-sm);
-    background: rgba(229, 52, 42, 0.08);
+    background: var(--red-soft);
     color: var(--red);
     font-size: 13px;
 }
@@ -217,7 +217,7 @@
 }
 
 .txlink {
-    color: var(--accent);
+    color: var(--link);
     font-size: 14px;
     font-weight: 500;
     margin-bottom: var(--s-3);
