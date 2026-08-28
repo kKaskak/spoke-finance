@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AXIS_COLOR, GRID_COLOR, tooltipItemStyle, tooltipLabelStyle, tooltipStyle } from '@/lib/chart';
+import { useChartTheme } from '@/lib/chart';
 import { fmtPct, fmtUsd } from '@/lib/format';
 import { holdNetWorth, loopModel, loopNetWorth } from '@/lib/projection';
 import styles from './LoopSimulator.module.scss';
 
 const STEPS = 48;
-const HOLD = '#1d1d1f';
-const LOOP = '#0071e3';
 
 type Props = {
     netWorthUsd: number;
@@ -20,6 +18,7 @@ const mult = (n: number) => `${n.toFixed(1)}×`;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
 export const LoopSimulator = ({ netWorthUsd, healthFactor, collateralFactor, borrowApr }: Props) => {
+    const chart = useChartTheme();
     const cf = collateralFactor || 0.8;
     const [monthly, setMonthly] = useState(1000);
     const [months, setMonths] = useState(24);
@@ -87,11 +86,11 @@ export const LoopSimulator = ({ netWorthUsd, healthFactor, collateralFactor, bor
 
             <div className={styles.legend}>
                 <span className={styles.legendItem}>
-                    <span className={styles.swatch} style={{ background: HOLD }} />
+                    <span className={styles.swatch} style={{ background: chart.hold }} />
                     Buy &amp; hold
                 </span>
                 <span className={styles.legendItem}>
-                    <span className={styles.swatch} style={{ background: LOOP }} />
+                    <span className={styles.swatch} style={{ background: chart.accent }} />
                     Loop · keep HF {targetHf.toFixed(2)} ({model.leverage.toFixed(2)}×)
                 </span>
             </div>
@@ -100,52 +99,52 @@ export const LoopSimulator = ({ netWorthUsd, healthFactor, collateralFactor, bor
                 <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 4 }}>
                     <defs>
                         <linearGradient id="loopFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={LOOP} stopOpacity={0.18} />
-                            <stop offset="100%" stopColor={LOOP} stopOpacity={0} />
+                            <stop offset="0%" stopColor={chart.accent} stopOpacity={0.18} />
+                            <stop offset="100%" stopColor={chart.accent} stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="holdFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={HOLD} stopOpacity={0.08} />
-                            <stop offset="100%" stopColor={HOLD} stopOpacity={0} />
+                            <stop offset="0%" stopColor={chart.hold} stopOpacity={0.08} />
+                            <stop offset="100%" stopColor={chart.hold} stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                    <CartesianGrid stroke={chart.grid} vertical={false} />
                     <XAxis
                         dataKey="m"
                         type="number"
                         domain={[lo, targetX]}
                         tickFormatter={mult}
-                        tick={{ fill: AXIS_COLOR, fontSize: 12 }}
+                        tick={{ fill: chart.axis, fontSize: 12 }}
                         tickLine={false}
-                        axisLine={{ stroke: GRID_COLOR }}
+                        axisLine={{ stroke: chart.grid }}
                     />
                     <YAxis
                         tickFormatter={(v) => fmtUsd(Number(v), true)}
-                        tick={{ fill: AXIS_COLOR, fontSize: 12 }}
+                        tick={{ fill: chart.axis, fontSize: 12 }}
                         tickLine={false}
                         axisLine={false}
                         width={56}
                     />
                     <ReferenceLine
                         x={1}
-                        stroke={AXIS_COLOR}
+                        stroke={chart.axis}
                         strokeDasharray="4 4"
                         strokeOpacity={0.6}
-                        label={{ value: 'Now', position: 'insideTopLeft', fill: AXIS_COLOR, fontSize: 11 }}
+                        label={{ value: 'Now', position: 'insideTopLeft', fill: chart.axis, fontSize: 11 }}
                     />
                     {liqM > lo && (
                         <ReferenceLine
                             x={liqM}
-                            stroke="#e5342a"
+                            stroke={chart.bad}
                             strokeDasharray="4 4"
                             strokeOpacity={0.7}
-                            label={{ value: 'Liquidation', position: 'insideTopRight', fill: '#e5342a', fontSize: 11 }}
+                            label={{ value: 'Liquidation', position: 'insideTopRight', fill: chart.bad, fontSize: 11 }}
                         />
                     )}
                     <Area
                         name="Buy & hold"
                         type="monotone"
                         dataKey="hold"
-                        stroke={HOLD}
+                        stroke={chart.hold}
                         strokeWidth={2}
                         fill="url(#holdFill)"
                         isAnimationActive={false}
@@ -154,17 +153,17 @@ export const LoopSimulator = ({ netWorthUsd, healthFactor, collateralFactor, bor
                         name="Loop"
                         type="monotone"
                         dataKey="loop"
-                        stroke={LOOP}
+                        stroke={chart.accent}
                         strokeWidth={2.5}
                         fill="url(#loopFill)"
                         isAnimationActive={false}
                     />
-                    <ReferenceDot x={targetX} y={loopEnd} r={5} fill="#ffffff" stroke={LOOP} strokeWidth={2.5} />
+                    <ReferenceDot x={targetX} y={loopEnd} r={5} fill={chart.dot} stroke={chart.accent} strokeWidth={2.5} />
                     <Tooltip
-                        cursor={{ stroke: '#d2d2d7' }}
-                        contentStyle={tooltipStyle}
-                        labelStyle={tooltipLabelStyle}
-                        itemStyle={tooltipItemStyle}
+                        cursor={{ stroke: chart.cursor }}
+                        contentStyle={chart.tooltip}
+                        labelStyle={chart.tooltipLabel}
+                        itemStyle={chart.tooltipItem}
                         itemSorter={(item) => -Number(item.value)}
                         labelFormatter={(v) => `${mult(Number(v))} price`}
                         formatter={(value, name) => [fmtUsd(Number(value), true), name]}
