@@ -5,7 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Spoke Finance: Your DeFi portfolio, beautifully clear.</title>
         <meta name="description" content="Connect your wallet to manage your positions across Aave v4, Aave v3, Morpho and Fluid." />
-        <meta name="theme-color" content="#0071e3" />
+        <meta name="theme-color" content="#ffffff" />
+        <script>
+            try {
+                var t = localStorage.getItem('spoke-theme');
+                if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+            } catch (e) {}
+        </script>
         <link rel="canonical" href="https://spoke.finance" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://spoke.finance" />
