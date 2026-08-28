@@ -75,7 +75,7 @@
 
     @include mobile {
         grid-area: tabs;
-        grid-column: auto;
+        grid-column: 1 / -1;
         width: 100%;
     }
 }
@@ -127,6 +127,7 @@
 
     @include mobile {
         grid-area: right;
+        gap: var(--s-2);
     }
 }
 
