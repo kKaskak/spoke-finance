@@ -26,7 +26,7 @@
 }
 
 .swatchSupplied {
-    background: rgba(0, 113, 227, 0.22);
+    background: var(--accent-soft);
 }
 
 .swatchBorrowed {
@@ -75,7 +75,7 @@
 .fill {
     height: 100%;
     border-radius: var(--r-pill);
-    background: rgba(0, 113, 227, 0.22);
+    background: var(--accent-soft);
     min-width: 14px;
 }
 

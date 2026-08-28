@@ -1,5 +1,5 @@
 import { Area, AreaChart, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { tooltipItemStyle, tooltipLabelStyle, tooltipStyle } from '@/lib/chart';
+import { useChartTheme } from '@/lib/chart';
 import { projectAction } from '@/lib/projection';
 import type { AccountSummary, ActionKind, ReserveWithUser } from '@shared/types';
 
@@ -17,6 +17,7 @@ type Props = {
 const clamp = (hf: number | null) => Math.min(hf ?? CAP, CAP);
 
 export const HfChart = ({ account, reserve, kind, max, amount }: Props) => {
+    const chart = useChartTheme();
     const span = max > 0 ? max : 1;
     const data = Array.from({ length: STEPS + 1 }, (_, i) => {
         const a = (span * i) / STEPS;
@@ -29,28 +30,28 @@ export const HfChart = ({ account, reserve, kind, max, amount }: Props) => {
             <AreaChart data={data} margin={{ top: 8, right: 6, bottom: 0, left: 6 }}>
                 <defs>
                     <linearGradient id="hfFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#0071e3" stopOpacity={0.16} />
-                        <stop offset="100%" stopColor="#0071e3" stopOpacity={0} />
+                        <stop offset="0%" stopColor={chart.accent} stopOpacity={0.16} />
+                        <stop offset="100%" stopColor={chart.accent} stopOpacity={0} />
                     </linearGradient>
                 </defs>
                 <XAxis dataKey="amount" hide type="number" domain={[0, span]} />
                 <YAxis hide domain={[0, CAP]} />
-                <ReferenceLine y={1} stroke="#e5342a" strokeDasharray="4 4" strokeOpacity={0.6} />
-                <ReferenceLine y={1.5} stroke="#bd6b00" strokeDasharray="4 4" strokeOpacity={0.35} />
+                <ReferenceLine y={1} stroke={chart.bad} strokeDasharray="4 4" strokeOpacity={0.6} />
+                <ReferenceLine y={1.5} stroke={chart.warn} strokeDasharray="4 4" strokeOpacity={0.35} />
                 <Area
                     type="monotone"
                     dataKey="hf"
-                    stroke="#0071e3"
+                    stroke={chart.accent}
                     strokeWidth={2.5}
                     fill="url(#hfFill)"
                     isAnimationActive={false}
                 />
-                <ReferenceDot x={amount} y={currentHf} r={5} fill="#ffffff" stroke="#0071e3" strokeWidth={2.5} />
+                <ReferenceDot x={amount} y={currentHf} r={5} fill={chart.dot} stroke={chart.accent} strokeWidth={2.5} />
                 <Tooltip
-                    cursor={{ stroke: '#d2d2d7' }}
-                    contentStyle={tooltipStyle}
-                    labelStyle={tooltipLabelStyle}
-                    itemStyle={tooltipItemStyle}
+                    cursor={{ stroke: chart.cursor }}
+                    contentStyle={chart.tooltip}
+                    labelStyle={chart.tooltipLabel}
+                    itemStyle={chart.tooltipItem}
                     labelFormatter={(v) => `${Number(v).toLocaleString('en-US', { maximumFractionDigits: 4 })} ${reserve.symbol}`}
                     formatter={(value) => {
                         const v = Number(value);

@@ -63,17 +63,17 @@
 
 .ghost {
     background: transparent;
-    color: var(--accent);
+    color: var(--link);
     &:hover:not(:disabled) {
-        background: rgba(0, 0, 0, 0.04);
+        background: var(--hover-wash);
     }
 }
 
 .danger {
-    background: rgba(229, 52, 42, 0.1);
+    background: var(--red-soft);
     color: var(--red);
     &:hover:not(:disabled) {
-        background: rgba(229, 52, 42, 0.16);
+        background: color-mix(in srgb, var(--red) 18%, transparent);
     }
 }
 

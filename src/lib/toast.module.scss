@@ -22,7 +22,7 @@
     width: 340px;
     max-width: 100%;
     padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4);
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--scrim);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border: 1px solid var(--border);

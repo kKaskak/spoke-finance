@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Support } from '@/components/Support/Support';
+import { ThemeToggle } from '@/components/ThemeToggle/ThemeToggle';
 import { WalletButton } from '@/components/WalletButton/WalletButton';
 import { EASE } from '@/lib/motion';
 import styles from './AppShell.module.scss';
@@ -69,6 +70,7 @@ export const AppShell = () => {
                         ))}
                     </nav>
                     <div className={styles.right}>
+                        <ThemeToggle />
                         <Support />
                         <WalletButton />
                     </div>

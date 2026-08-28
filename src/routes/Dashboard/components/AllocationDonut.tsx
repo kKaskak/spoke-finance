@@ -1,7 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { PlatformIcon } from '@/components/PlatformIcon/PlatformIcon';
 import { TokenIcon } from '@/components/TokenIcon/TokenIcon';
-import { CHART_COLORS, tooltipItemStyle, tooltipLabelStyle, tooltipStyle, tooltipWrapperStyle } from '@/lib/chart';
+import { CHART_COLORS, tooltipWrapperStyle, useChartTheme } from '@/lib/chart';
 import { fmtPct, fmtUsd } from '@/lib/format';
 import { PLATFORM_LABEL, PLATFORM_SHORT, type PlatformKey } from '@/lib/platform';
 import styles from './AllocationDonut.module.scss';
@@ -20,6 +20,7 @@ type Props = {
 };
 
 export const AllocationDonut = ({ slices, emptyLabel }: Props) => {
+    const chart = useChartTheme();
     const total = slices.reduce((sum, s) => sum + s.usd, 0);
 
     if (slices.length === 0 || total <= 0) {
@@ -47,9 +48,9 @@ export const AllocationDonut = ({ slices, emptyLabel }: Props) => {
                         </Pie>
                         <Tooltip
                             wrapperStyle={tooltipWrapperStyle}
-                            contentStyle={tooltipStyle}
-                            labelStyle={tooltipLabelStyle}
-                            itemStyle={tooltipItemStyle}
+                            contentStyle={chart.tooltip}
+                            labelStyle={chart.tooltipLabel}
+                            itemStyle={chart.tooltipItem}
                             formatter={(value, name, entry) => {
                                 const platform = (entry?.payload as Slice | undefined)?.platform;
                                 const label = platform ? `${name} · ${PLATFORM_LABEL[platform]}` : name;

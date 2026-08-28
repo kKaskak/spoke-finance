@@ -18,7 +18,7 @@
 @mixin focus-ring {
     outline: none;
     &:focus-visible {
-        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.25);
+        box-shadow: 0 0 0 4px var(--focus-ring);
     }
 }
 

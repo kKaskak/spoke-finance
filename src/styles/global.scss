@@ -27,7 +27,7 @@ body {
 }
 
 a {
-    color: var(--accent);
+    color: var(--link);
     text-decoration: none;
 }
 
@@ -50,7 +50,7 @@ h4 {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #c7c7cc;
+    background: var(--scrollbar);
     border: 3px solid var(--bg);
     border-radius: var(--r-pill);
 }

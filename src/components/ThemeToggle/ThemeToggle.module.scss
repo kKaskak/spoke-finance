@@ -1,0 +1,24 @@
+@use 'styles/mixins' as *;
+
+.toggle {
+    @include row;
+    @include clickable;
+    @include focus-ring;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: var(--surface-sub);
+    color: var(--text-secondary);
+
+    &:hover {
+        background: var(--surface-hover);
+        color: var(--text);
+    }
+
+    &:active {
+        transform: scale(0.94);
+    }
+}
