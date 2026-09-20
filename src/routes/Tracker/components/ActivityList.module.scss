@@ -35,12 +35,21 @@
 
 .date {
     @include tnum;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
     font-size: 13px;
     color: var(--text-secondary);
 
     @include mobile {
         grid-area: date;
     }
+}
+
+.chain {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
 }
 
 .kind {
@@ -73,6 +82,11 @@
 .send {
     background: var(--red-soft);
     color: var(--bad);
+}
+
+.bridge {
+    background: var(--surface-sub);
+    color: var(--text-tertiary);
 }
 
 .legs {

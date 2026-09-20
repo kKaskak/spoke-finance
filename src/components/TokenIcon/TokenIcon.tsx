@@ -6,11 +6,12 @@ type Props = {
     symbol: string;
     address: string;
     size?: number;
+    chain?: string;
 };
 
-const url = (address: string) => {
+const url = (address: string, chain: string) => {
     try {
-        return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${getAddress(
+        return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${chain}/assets/${getAddress(
             address
         )}/logo.png`;
     } catch {
@@ -18,9 +19,9 @@ const url = (address: string) => {
     }
 };
 
-export const TokenIcon = ({ symbol, address, size = 36 }: Props) => {
+export const TokenIcon = ({ symbol, address, size = 36, chain = 'ethereum' }: Props) => {
     const [failed, setFailed] = useState(false);
-    const src = url(address);
+    const src = url(address, chain);
     const dims = { width: size, height: size };
 
     if (failed || !src) {

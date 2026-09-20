@@ -119,7 +119,9 @@ export type OtherPositionsResponse = {
     fluid: PlatformSummary | null;
 };
 
-export type TradeKind = 'swap' | 'receive' | 'send';
+export type Chain = 'ethereum' | 'base';
+
+export type TradeKind = 'swap' | 'receive' | 'send' | 'bridge';
 
 export type TradeLeg = {
     symbol: string;
@@ -130,6 +132,7 @@ export type TradeLeg = {
 
 export type TradeEvent = {
     hash: string;
+    chain: Chain;
     ts: number;
     kind: TradeKind;
     legs: TradeLeg[];
@@ -139,6 +142,7 @@ export type TradeEvent = {
 export type TrackedAsset = {
     symbol: string;
     address: string;
+    chain: Chain;
     qty: number;
     costUsd: number;
     avgCost: number;
@@ -168,4 +172,5 @@ export type HistoryResponse = {
     assets: TrackedAsset[];
     events: TradeEvent[];
     summary: HistorySummary;
+    partial: Chain[];
 };
