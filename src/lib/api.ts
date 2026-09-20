@@ -1,4 +1,4 @@
-import type { OtherMarketsResponse, OtherPositionsResponse, PositionResponse, Reserve } from '@shared/types';
+import type { HistoryResponse, OtherMarketsResponse, OtherPositionsResponse, PositionResponse, Reserve } from '@shared/types';
 
 const API_BASE: string = import.meta.env.VITE_API_BASE ?? '';
 
@@ -15,3 +15,4 @@ export const fetchReserves = () => get<Reserve[]>('/api/reserves');
 export const fetchPosition = (address: string) => get<PositionResponse>(`/api/position/${address}`);
 export const fetchOtherMarkets = () => get<OtherMarketsResponse>('/api/other-markets');
 export const fetchOtherPositions = (address: string) => get<OtherPositionsResponse>(`/api/other-positions/${address}`);
+export const fetchHistory = (address: string) => get<HistoryResponse>(`/api/history/${address}`);

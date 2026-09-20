@@ -26,7 +26,7 @@ let rawCache: { at: number; data: RawReserve[] } | null = null;
 let reservesCache: { at: number; data: Reserve[] } | null = null;
 const positionCache = new Map<string, { at: number; data: PositionResponse }>();
 
-const loadRawReserves = async (): Promise<RawReserve[]> => {
+export const loadRawReserves = async (): Promise<RawReserve[]> => {
     if (rawCache && Date.now() - rawCache.at < 60_000) return rawCache.data;
     const spoke = getSpoke();
     const count = Number(await spoke.getReserveCount());

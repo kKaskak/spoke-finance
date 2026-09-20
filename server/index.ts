@@ -2,6 +2,7 @@ import cors from 'cors';
 import { ethers } from 'ethers';
 import express from 'express';
 import { getPosition, getReserves } from './data';
+import { getHistory } from './history';
 import { getOtherMarkets, getOtherPositions } from './platforms';
 
 const app = express();
@@ -41,6 +42,15 @@ app.get('/api/other-positions/:address', wrap(async (req, res) => {
         return;
     }
     res.json(await getOtherPositions(ethers.getAddress(address)));
+}));
+
+app.get('/api/history/:address', wrap(async (req, res) => {
+    const address = req.params.address;
+    if (!ethers.isAddress(address)) {
+        res.status(400).json({ error: 'invalid address' });
+        return;
+    }
+    res.json(await getHistory(ethers.getAddress(address)));
 }));
 
 const port = Number(process.env.PORT ?? 8787);

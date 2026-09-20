@@ -9,12 +9,13 @@ import styles from './AppShell.module.scss';
 
 const tabs = [
     { to: '/', label: 'Overview', end: true },
-    { to: '/markets', label: 'Markets', end: false }
+    { to: '/markets', label: 'Markets', end: false },
+    { to: '/tracker', label: 'Tracker', end: false }
 ];
 
 export const AppShell = () => {
     const { pathname } = useLocation();
-    const activeTab = pathname.startsWith('/markets') ? '/markets' : '/';
+    const activeTab = tabs.find((t) => t.to !== '/' && pathname.startsWith(t.to))?.to ?? '/';
     const mainRef = useRef<HTMLElement>(null);
     const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
     const scrollPositions = useRef(new Map<string, number>());
