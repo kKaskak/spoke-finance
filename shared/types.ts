@@ -118,3 +118,54 @@ export type OtherPositionsResponse = {
     morpho: PlatformSummary | null;
     fluid: PlatformSummary | null;
 };
+
+export type TradeKind = 'swap' | 'receive' | 'send';
+
+export type TradeLeg = {
+    symbol: string;
+    address: string;
+    amount: number;
+    usd: number | null;
+};
+
+export type TradeEvent = {
+    hash: string;
+    ts: number;
+    kind: TradeKind;
+    legs: TradeLeg[];
+    valueUsd: number | null;
+};
+
+export type TrackedAsset = {
+    symbol: string;
+    address: string;
+    qty: number;
+    costUsd: number;
+    avgCost: number;
+    avgBuy: number;
+    avgSell: number;
+    boughtQty: number;
+    boughtUsd: number;
+    soldQty: number;
+    soldUsd: number;
+    realizedUsd: number;
+    priceUsd: number | null;
+    valueUsd: number | null;
+    unrealizedUsd: number | null;
+};
+
+export type HistorySummary = {
+    boughtUsd: number;
+    soldUsd: number;
+    costUsd: number;
+    valueUsd: number;
+    realizedUsd: number;
+    unrealizedUsd: number;
+};
+
+export type HistoryResponse = {
+    address: string;
+    assets: TrackedAsset[];
+    events: TradeEvent[];
+    summary: HistorySummary;
+};

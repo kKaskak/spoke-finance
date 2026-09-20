@@ -6,6 +6,11 @@ export const fmtUsd = (n: number, compact = false): string => {
     return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 };
 
+export const fmtSignedUsd = (n: number): string => `${n < 0 ? '−' : '+'}${fmtUsd(Math.abs(n))}`;
+
+export const fmtPrice = (n: number): string =>
+    Math.abs(n) >= 1 || n === 0 ? fmtUsd(n) : '$' + n.toLocaleString('en-US', { maximumSignificantDigits: 3 });
+
 export const fmtToken = (n: number, decimals = 4): string => {
     if (!isFinite(n) || n === 0) return '0';
     if (n > 0 && n < 0.0001) return '<0.0001';

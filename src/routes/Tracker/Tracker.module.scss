@@ -1,0 +1,256 @@
+@use 'styles/mixins' as *;
+
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-6);
+}
+
+.head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+
+    @include mobile {
+        font-size: 36px;
+    }
+}
+
+.subtitle {
+    font-size: 19px;
+    color: var(--text-secondary);
+    max-width: 56ch;
+    letter-spacing: -0.01em;
+}
+
+.lookup {
+    display: flex;
+    gap: var(--s-3);
+
+    @include mobile {
+        flex-direction: column;
+    }
+}
+
+.input,
+.labelInput {
+    @include focus-ring;
+    flex: 1;
+    min-width: 0;
+    padding: 10px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    font: inherit;
+    font-size: 15px;
+    color: var(--text);
+    font-family: var(--mono);
+    transition: border-color 0.2s var(--ease);
+
+    &::placeholder {
+        color: var(--text-tertiary);
+        font-family: var(--font);
+    }
+
+    &:focus {
+        border-color: var(--accent, var(--link));
+    }
+}
+
+.labelInput {
+    flex: 0 1 160px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-family: var(--font);
+}
+
+.chips {
+    @include row;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin-top: var(--s-4);
+}
+
+.chip {
+    @include row;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    border: 1px solid transparent;
+    transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+
+    &:hover {
+        background: var(--surface-hover);
+    }
+}
+
+.chipActive {
+    border-color: var(--border-strong);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.chipLink {
+    @include row;
+    gap: var(--s-2);
+    padding: 6px 12px;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.chipLabel {
+    font-weight: 500;
+}
+
+.chipAddr {
+    @include tnum;
+    color: var(--text-tertiary);
+    font-family: var(--mono);
+    font-size: 12px;
+}
+
+.chipRemove {
+    @include row;
+    @include focus-ring;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--hover-wash);
+        color: var(--text);
+    }
+}
+
+.saveForm {
+    @include row;
+    gap: var(--s-2);
+    margin-left: auto;
+
+    @include mobile {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s-6);
+    padding: var(--s-6);
+    background: var(--surface-sub);
+    border-radius: var(--r-xl);
+
+    @include mobile {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--s-5) var(--s-4);
+        padding: var(--s-5);
+    }
+}
+
+.statSkeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+}
+
+.rowSkeleton {
+    display: block;
+    margin-bottom: var(--s-3);
+}
+
+.pos {
+    color: var(--good);
+}
+
+.neg {
+    color: var(--bad);
+}
+
+.caption {
+    margin-top: calc(var(--s-4) * -1);
+    padding: 0 var(--s-2);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+}
+
+.mutedPad {
+    padding: var(--s-6) var(--s-5);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 14px;
+}
+
+.toggleLink {
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--r-pill);
+    background: var(--surface-sub);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+
+    &:hover {
+        background: var(--surface-hover);
+        color: var(--text);
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px var(--focus-ring);
+    }
+}
+
+.errText {
+    color: var(--bad);
+    font-size: 15px;
+    word-break: break-all;
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--s-8) var(--s-2);
+    gap: var(--s-4);
+}
+
+.emptyTitle {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text);
+
+    @include mobile {
+        font-size: 32px;
+    }
+}
+
+.emptySub {
+    font-size: 19px;
+    color: var(--text-secondary);
+    max-width: 40ch;
+    line-height: 1.45;
+    margin-bottom: var(--s-3);
+
+    @include mobile {
+        font-size: 17px;
+    }
+}

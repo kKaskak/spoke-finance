@@ -1,0 +1,162 @@
+@use 'styles/mixins' as *;
+
+.list {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 120px 90px 1fr 120px 28px;
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-3) var(--s-5);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s var(--ease);
+
+    &:last-of-type {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--surface-sub);
+    }
+
+    @include mobile {
+        grid-template-columns: 1fr auto 28px;
+        grid-template-areas:
+            'date kind link'
+            'legs legs legs'
+            'value value value';
+        gap: var(--s-2) var(--s-3);
+        padding: var(--s-4);
+    }
+}
+
+.date {
+    @include tnum;
+    font-size: 13px;
+    color: var(--text-secondary);
+
+    @include mobile {
+        grid-area: date;
+    }
+}
+
+.kind {
+    justify-self: start;
+    padding: 2px 10px;
+    border-radius: var(--r-pill);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--surface-sub);
+    color: var(--text-secondary);
+
+    @include mobile {
+        grid-area: kind;
+        justify-self: end;
+    }
+}
+
+.swap {
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+.receive {
+    background: var(--green-soft);
+    color: var(--good);
+}
+
+.send {
+    background: var(--red-soft);
+    color: var(--bad);
+}
+
+.legs {
+    @include row;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-4);
+    min-width: 0;
+
+    @include mobile {
+        grid-area: legs;
+    }
+}
+
+.leg {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.legAmount {
+    @include tnum;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.legIn {
+    color: var(--good);
+}
+
+.legOut {
+    color: var(--text);
+}
+
+.legUnit {
+    @include tnum;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.value {
+    @include tnum;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: right;
+
+    @include mobile {
+        grid-area: value;
+        text-align: left;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+}
+
+.link {
+    @include row;
+    @include focus-ring;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--text-tertiary);
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+
+    &:hover {
+        background: var(--hover-wash);
+        color: var(--text);
+    }
+
+    @include mobile {
+        grid-area: link;
+    }
+}
+
+.more {
+    display: flex;
+    justify-content: center;
+    padding: var(--s-4);
+}
+
+.empty {
+    padding: var(--s-6) var(--s-5);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 14px;
+}

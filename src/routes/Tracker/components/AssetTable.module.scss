@@ -1,0 +1,149 @@
+@use 'styles/mixins' as *;
+
+.table {
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: grid;
+    grid-template-columns: var(--cols);
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-4) var(--s-5);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+
+    @include mobile {
+        display: none;
+    }
+}
+
+.headEnd {
+    text-align: right;
+}
+
+.row {
+    @include focus-ring;
+    display: grid;
+    grid-template-columns: var(--cols);
+    align-items: center;
+    gap: var(--s-4);
+    width: 100%;
+    padding: var(--s-4) var(--s-5);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s var(--ease);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--surface-sub);
+    }
+
+    @include mobile {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s-3) var(--s-4);
+        padding: var(--s-4);
+        border-bottom: none;
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        margin: var(--s-3) var(--s-3) 0;
+        background: var(--surface);
+
+        &:last-child {
+            margin-bottom: var(--s-3);
+        }
+    }
+}
+
+.rowActive {
+    background: var(--surface-sub);
+    box-shadow: inset 3px 0 0 var(--link);
+}
+
+.asset {
+    @include row;
+    gap: var(--s-3);
+    min-width: 0;
+
+    @include mobile {
+        grid-column: 1 / -1;
+    }
+}
+
+.assetText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.symbol {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+.qty {
+    @include tnum;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--text-tertiary);
+}
+
+.cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    min-width: 0;
+    text-align: right;
+
+    @include mobile {
+        align-items: flex-start;
+        text-align: left;
+
+        &::before {
+            content: attr(data-label);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+    }
+}
+
+.value {
+    @include tnum;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.sub {
+    @include tnum;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    min-height: 14px;
+}
+
+.pos {
+    color: var(--good);
+}
+
+.neg {
+    color: var(--bad);
+}
+
+.muted {
+    color: var(--text-tertiary);
+}
