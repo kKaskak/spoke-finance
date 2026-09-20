@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const TRANSIENT =
-    /429|compute units|rate limit|throughput|missing revert data|CALL_EXCEPTION|SERVER_ERROR|TIMEOUT|could not coalesce|bad result|ECONNRESET|ETIMEDOUT|socket hang up|fetch failed|502|503|504/i;
+    /429|too many requests|compute units|rate limit|throughput|missing revert data|CALL_EXCEPTION|SERVER_ERROR|TIMEOUT|could not coalesce|bad result|ECONNRESET|ETIMEDOUT|socket hang up|fetch failed|502|503|504/i;
 
 const isTransient = (e: unknown): boolean => {
     const err = e as { code?: string; message?: string; info?: { error?: { code?: number } } };

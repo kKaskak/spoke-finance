@@ -17,7 +17,7 @@ const AssetRow = ({ asset, active, onSelect }: RowProps) => {
     return (
         <button type="button" className={[styles.row, active ? styles.rowActive : ''].join(' ')} onClick={onClick}>
             <div className={styles.asset}>
-                <TokenIcon symbol={asset.symbol} address={asset.address} size={36} />
+                <TokenIcon symbol={asset.symbol} address={asset.address} chain={asset.chain} size={36} />
                 <div className={styles.assetText}>
                     <span className={styles.symbol}>{asset.symbol}</span>
                     <span className={styles.qty}>

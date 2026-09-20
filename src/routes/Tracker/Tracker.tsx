@@ -95,7 +95,7 @@ export const Tracker = () => {
             <div className={styles.head}>
                 <h1 className={styles.title}>Tracker</h1>
                 <p className={styles.subtitle}>
-                    Buys, sells, average prices and profit for any Ethereum address. View-only, no signature needed.
+                    Buys, sells, average prices and profit for any address on Ethereum and Base. View-only, no signature needed.
                 </p>
             </div>
 
@@ -147,7 +147,7 @@ export const Tracker = () => {
 
             {param && !address && (
                 <Card title="Invalid address">
-                    <p className={styles.errText}>{param} is not an Ethereum address.</p>
+                    <p className={styles.errText}>{param} is not a valid address.</p>
                 </Card>
             )}
 
@@ -180,8 +180,10 @@ export const Tracker = () => {
                         />
                     </Reveal>
                     <p className={styles.caption}>
-                        Average cost method. Deposits, borrows and repayments on Aave and Morpho are not trades; swaps, transfers in and
-                        transfers out are. Transfers are priced at market at the time.
+                        Ethereum and Base combined, average cost method. Deposits, borrows and repayments on Aave and Morpho are not
+                        trades; swaps, transfers in and transfers out are. Transfers are priced at market at the time, and bridges between the
+                        two chains are matched and ignored.
+                        {data.partial.length > 0 && ' Base history is partial: this address has more token transfers than one scan covers.'}
                     </p>
                     <Card title="Assets" pad={false}>
                         {data.assets.length === 0 ? (
